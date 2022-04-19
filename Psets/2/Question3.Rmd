@@ -1,0 +1,61 @@
+---
+title: "Question 3"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+rm(list=ls())
+library(dplyr)
+library(tools)
+library(ggplot2)
+library(fixest)
+library(sandwich)
+library(pander)
+library(kableExtra)
+```
+
+
+```{r}
+# Prepare the data
+df <- read.table("PS2Data/CARD.raw", 
+                 quote="\"", comment.char="")
+
+name_string <- "id   nearc2    nearc4    educ      age       fatheduc  motheduc  
+weight   momdad14  sinmom14  step14    reg661    reg662    reg663    reg664   
+reg665 reg666    reg667    reg668    reg669    south66   black     smsa   south    
+smsa66    wage      enroll    KWW       IQ        married   libcrd14  exper    
+lwage     expersq   "
+
+name_string <- gsub("[\r\n]", " ", name_string)
+name_string <- strsplit(name_string, " ")
+
+name_vec <- vector()
+for (i in name_string[[1]]) {
+  if (i != "1" & i != ""){
+    name_vec <- append(name_vec, i)
+  }
+}
+colnames(df) <- name_vec
+```
+
+# a
+```{r, results='hide'}
+# Homoskedastic
+homo <- feols(lwage ~ educ + exper + expersq + black + south + smsa + smsa66 +
+                reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+                  se = "iid", df)
+
+hetero <- feols(lwage ~ educ + exper + expersq + black + south + smsa + smsa66 +
+                reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+                  se = "hc1", df)
+
+out <- etable(homo, hetero, tex = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\centering \\\\", out))
+```
+
+
+
