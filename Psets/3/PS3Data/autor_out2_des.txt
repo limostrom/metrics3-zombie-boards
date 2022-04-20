@@ -1,0 +1,13 @@
+AUTOR_OUT2.DES
+
+lnths	lnemp	mico	mppa	mgfa	s	t
+
+  Obs:   850
+
+  1. lnths			log of state temporary help services employment
+  2. lnemp			log of state non-farm employment
+  3. mico			dummy variable for implied contract exception
+  4. mppa			dummy variable for public policy exception
+  5. mgfa			dummy variable for good faith exception
+  6. s				state identifier
+  7. t				time period identifier
