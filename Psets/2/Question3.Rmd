@@ -40,22 +40,129 @@ colnames(df) <- name_vec
 ```
 
 # a
+
+In the table below, the $iid$ and $robust$ standard errors are quite similar ($robust$ standard errors are usually a little larmer), so the inference (ttest and pvalue) is also quite similar.
+
+The $iid$ standard error assumes that the variance of the error term is constant and does not depend on independent variables. However, the $robust$ standard error does not assume this, so it can work under both homoskedasticity and heteroskedasticity.
 ```{r, results='hide'}
 # Homoskedastic
 homo <- feols(lwage ~ educ + exper + expersq + black + south + smsa + smsa66 +
-                reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
-                  se = "iid", df)
+              reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+              se = "iid", df)
 
+# Heteroskedastic
 hetero <- feols(lwage ~ educ + exper + expersq + black + south + smsa + smsa66 +
                 reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
-                  se = "hc1", df)
+                se = "hc1", df)
 
-out <- etable(homo, hetero, tex = TRUE) 
+out <- etable(homo, hetero, tex = TRUE, se.row = TRUE) 
 ```
 
 ```{r, include=knitr::is_latex_output()}
-knitr::asis_output(c("\\centering \\\\", out))
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
 ```
 
+\newpage
+# b
 
+There exists a practically and statistically significant partial correlation between $educ$ and $nearc4$: the coefficient of $nearc4$ is $0.32$, which means indivisuals near 4 yr college have additional $0.32$ years of schooling. It's significant under $1\%$ level with both $iid$ and $robust$ standard errors.
+
+For some variables, the $robust$ standard error is a little larger, and for other variables, the $robust$ standard error is a little smaller. But they are still quite similar and the inference (ttest and pvalue) gives same conclusions. For $near4$, the $robust$ standard error is a little smaller, but the coefficient is both significant under $1\%$ level.
+```{r, results='hide'}
+reduce_homo <- feols(educ ~ nearc4 + exper + expersq + black + south + smsa + smsa66 +
+                     reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+                     se = "iid", df)
+
+reduce_hetero <- feols(educ ~ nearc4 + exper + expersq + black + south + smsa + smsa66 +
+                      reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+                      se = "hc1", df)
+
+out <- etable(reduce_homo, reduce_hetero, tex = TRUE, se.row = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+# c
+
+The IV estimate has wider CI and the lower bound is closer to 0, hence it's more conservative. However, the estimates from both IV and OLS are significant on $95 \%$ level since the lower bounds are both larger than 0.
+```{r, results='hide'}
+iv_c <- feols(lwage ~ exper + expersq + black + south + smsa + smsa66 +
+              reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668 |
+              educ ~ nearc4,
+              se = "hc1", df)
+
+out <- etable(iv_c, hetero, tex = TRUE, 
+              coefstat = c("confint"),
+              headers=list("IV" = 1, "OLS" = 1)) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+# d
+
+The table below presents estimation results from the reduced form. After adding $nearc2$, the coefficient of $nearc4$ is even a littler larger and the $se$ is essentially the same. However, the coefficient of $nearc2$ is way smaller than $nearc4$ and not significant. Therefore, $nearc4$ is more strongly related to $educ$ than $nearc2$. After adding $nearc2$, the adjusted R square also increased a little - the independent variables can jointly explain more variation of $educ$.
+```{r, results='hide'}
+reduce_d <- feols(educ ~ nearc2 + nearc4 + exper + expersq + black + south + smsa + smsa66 +
+                         reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+                         se = "hc1", df)
+
+out <- etable(reduce_d, reduce_hetero, tex = TRUE, se.row = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+After using two IV, the coefficient increases to $0.16$, larger than former IV result ($0.13$) and the se is even smaller, so it does indicates a stronger relationship. The estimate is larger and we are more confident that it's significantly different from 0.
+
+```{r, results='hide'}
+iv_d <- feols(lwage ~ exper + expersq + black + south + smsa + smsa66 +
+              reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668 |
+              educ ~ nearc2 + nearc4,
+              se = "hc1", df)
+
+out <- etable(iv_d, iv_c, tex = TRUE, 
+              headers=list("#IV:2" = 1, "#IV:1" = 1)) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+# e
+
+$IQ$ is significantly correlated with $nearc4$. Intuitively, $IQ$ is also correlated with $education$, so $near4$ might not be a valid IV for $education$ since it does not satisfy the exclusion assumption. The previous IV estimations might be biased.
+
+```{r, results='hide'}
+df$IQ <- as.numeric(df$IQ)
+ols_e <- feols(IQ ~ nearc4, se = "hc1", df)
+out <- etable(ols_e, tex = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+# f
+
+After controlling for $region$ variables, the coefficient of $nearc4$ is not significant anymore. Therefore, after controlling for these $region$ variables, $nearc4$ can serve as a valid IV for $education$ since we can exclude the bias led by $IQ$.
+
+```{r, results='hide'}
+df$IQ <- as.numeric(df$IQ)
+ols_f <- feols(IQ ~ nearc4 + smsa66 + reg661 + reg662 + reg669, se = "hc1", df)
+out <- etable(ols_f, ols_e, tex = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
 
