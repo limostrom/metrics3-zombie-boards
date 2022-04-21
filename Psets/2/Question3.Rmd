@@ -41,7 +41,7 @@ colnames(df) <- name_vec
 
 # a
 
-In the table below, the $iid$ and $robust$ standard errors are quite similar ($robust$ standard errors are usually a little larmer), so the inference (ttest and pvalue) is also quite similar.
+In the table below, the $iid$ and $robust$ standard errors are quite similar ($robust$ standard errors are usually a little larger), so the inference (ttest and pvalue) is also quite similar.
 
 The $iid$ standard error assumes that the variance of the error term is constant and does not depend on independent variables. However, the $robust$ standard error does not assume this, so it can work under both homoskedasticity and heteroskedasticity.
 ```{r, results='hide'}
