@@ -32,7 +32,18 @@ library(texreg)
 ```
 
 ## Question 1
+\textit{Carefully evaluate the following comment. "I'm interested in estimating a model for the quantity of demand for widgets as a function of price, and I have some variables that tell me about the costs of producing widgets that I know are unrelated to demand shocks. I've estimated my model using OLS and 2SLS and have found that OLS produces better within sample forecasts and that the OLS forecasts are also better within a holdout sample I set aside before estimating the model. I also know that if a model doesn't forecast well, it's not a good model; so I'm going to use the OLS estimates to gauge the possible effects on quantity sold of implementing a $10 \%$ increase in price."}
+\vspace{2mm}
+First and foremost we know that trying to run traditional OLS models to estimate demand run into simultaneity. In fact this is quite literally the motivating example used throughout Chapter 3 of Hayashi. If we describe the economy as a system of equations we immediately notice that we have two \textit{simultaneous} equations as a function of price (noting that in market equilibrium $q_i^d = q_i^s = q_i)$:
+\begin{align*}
+\tag{demand} q_i &=\alpha_0 + \alpha_1p_1 + u_i \\
+\tag{supply} q_i &=\beta_0 + \beta_1p_1 + v_i
+\end{align*}
+If you are interested in $q_i$ or $p_i$ and solve the above equations to isolate the variable, you quickly see that they are functions of both errors and in OLS we will have a biased estimate. 
 
+The motivation for 2SLS is that we have a consistent estimator, even in cases of endogeniety. With a valid, strong instrument, as suggested by the statement, 2SLS will be the more "correct" model. If the instrument is weak, then we can make an argument that in sum cases OLS is the more precise estimate (though this still concedes a falsehood in the statement)
+
+Finally, forecasting isn't the end all be all of good models. At the end of the day if a variable is random and has high variance a perfect the TRUTH will be unforecastable, so even if the model is the "truth" we will have bad forecastability, but a complete understanding of the underlying mechanisms of the event/phenomenon we are interested. 
 
 \newpage
 ## Question 2
