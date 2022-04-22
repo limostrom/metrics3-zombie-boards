@@ -65,8 +65,8 @@ For cigarette prices to be a suitable instrument we need for it to be significan
 ```{r}
 
 # Load data BWGHT.raw into R
-setwd("C:/Users/17036/OneDrive/Documents/GitHub/metrics3-zombie-boards/Psets/2/PS2Data")
-BWGHT <- read.delim("BWGHT_RAW.txt", header=FALSE)
+#setwd("C:/Users/17036/OneDrive/Documents/GitHub/metrics3-zombie-boards/Psets/2/PS2Data")
+BWGHT <- read.delim("PS2Data/BWGHT_RAW.txt", header=FALSE)
 colnames(BWGHT) <- c("faminc","cigtax","cigprice","bwght","fatheduc","motheduc","parity",
                      "male","white","cigs","lbwght","bwghtlbs","packs","lfaminc")  
 
@@ -160,7 +160,7 @@ for (i in name_string[[1]]) {
 colnames(df) <- name_vec
 ```
 
-# a
+### (a)
 
 In the table below, the $iid$ and $robust$ standard errors are quite similar ($robust$ standard errors are usually a little larger), so the inference (ttest and pvalue) is also quite similar.
 
@@ -184,7 +184,7 @@ knitr::asis_output(c("\\begin{center}", out, "\\end{center}"))
 ```
 
 \newpage
-# b
+### (b)
 
 There exists a practically and statistically significant partial correlation between $educ$ and $nearc4$: the coefficient of $nearc4$ is $0.32$, which means indivisuals near 4 yr college have additional $0.32$ years of schooling. It's significant under $1\%$ level with both $iid$ and $robust$ standard errors.
 
@@ -206,7 +206,7 @@ knitr::asis_output(c("\\begin{center}", out, "\\end{center}"))
 ```
 
 \newpage
-# c
+### (c)
 
 The IV estimate has wider CI and the lower bound is closer to 0, hence it's more conservative. However, the estimates from both IV and OLS are significant on $95 \%$ level since the lower bounds are both larger than 0.
 ```{r, results='hide'}
@@ -225,7 +225,7 @@ knitr::asis_output(c("\\begin{center}", out, "\\end{center}"))
 ```
 
 \newpage
-# d
+### (d)
 
 The table below presents estimation results from the reduced form. After adding $nearc2$, the coefficient of $nearc4$ is even a littler larger and the $se$ is essentially the same. However, the coefficient of $nearc2$ is way smaller than $nearc4$ and not significant. Therefore, $nearc4$ is more strongly related to $educ$ than $nearc2$. After adding $nearc2$, the adjusted R square also increased a little - the independent variables can jointly explain more variation of $educ$.
 ```{r, results='hide'}
@@ -258,7 +258,7 @@ knitr::asis_output(c("\\begin{center}", out, "\\end{center}"))
 ```
 
 \newpage
-# e
+### (e)
 
 $IQ$ is significantly correlated with $nearc4$. Intuitively, $IQ$ is also correlated with $education$, so $near4$ might not be a valid IV for $education$ since it does not satisfy the exclusion assumption. The previous IV estimations might be biased.
 
@@ -273,7 +273,7 @@ knitr::asis_output(c("\\begin{center}", out, "\\end{center}"))
 ```
 
 \newpage
-# f
+### (f)
 
 After controlling for $region$ variables, the coefficient of $nearc4$ is not significant anymore. Therefore, after controlling for these $region$ variables, $nearc4$ can serve as a valid IV for $education$ since we can exclude the bias led by $IQ$.
 
