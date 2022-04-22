@@ -1,0 +1,279 @@
+---
+title: "41903 Pset 2"
+author: "Andrew McKinley, Lauren Mostrom, Pietro Ramella, Francisco Ruela, and Bohan Yang"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  pdf_document:
+    extra_dependencies: ["flafter"]
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+tinytex::tlmgr_update()
+rm(list=ls())
+library(dplyr)
+library(tools)
+library(ggplot2)
+library(Rcpp)
+library(fixest)
+library(sandwich)
+library(pander)
+library(kableExtra)
+library(lubridate)
+library(data.table)
+library(zoo)
+library(tidyr)
+library(ggpubr)
+library(stargazer)
+library(ivpack) # for IV
+library(MASS) # for simulation from a multivariate normal distribution 
+library(texreg)
+```
+
+## Question 1
+
+
+\newpage
+## Question 2
+
+### (a)
+We consider the following model:
+
+$$ \log(bwght) = \beta_0 + \beta_1 male + \beta_2 parity + \beta_3 \log(faminc) + \beta_4 packs + u $$
+
+We might expect $packs$ to be correlated with $u$ for a number of reasons. One example could be age cohort effects: older mothers are more likely to give birth to underweight babies, and may have grown into adulthood at a time when the dangers of smoking were not as well understood or communicated in schools. Another reason may be underlying health conditions of the mother, such as stress and anxiety, eating disorders, and conditions that cause chronic pain that could induce the mother to smoke more as a self-medicating mechanism and would reduce the birthweight of the baby. This could result in omitted variable bias, where $\beta_4$ would overstate the effect of smoking on baby birthweight because it would pick up the effects of the underlying health condition(s) correlated both with birthweight and smoking.
+
+### (b)
+For cigarette prices to be a suitable instrument we need for it to be significantly correlated with $packs$ (relevance) but not with $u$ (exclusion). We would expect the relevance condition to hold, but it may be weak. From basic laws of demand we would expect high cigarette prices to reduce cigarette consumption, but because of the addictive qualities of nicotine we may also worry that demand for cigarettes is relatively inelastic. The exclusion restriction is also somewhat dubious because state and local policies that raise the prices of cigarettes may also be correlated with the quality of healthcare access in those states, which could be correlated with women's consumption of cigarettes to self-treat underlying health conditions, as discussed in (a).
+
+
+### (c)
+
+
+```{r}
+
+# Load data BWGHT.raw into R
+setwd("C:/Users/17036/OneDrive/Documents/GitHub/metrics3-zombie-boards/Psets/2/PS2Data")
+BWGHT <- read.delim("BWGHT_RAW.txt", header=FALSE)
+colnames(BWGHT) <- c("faminc","cigtax","cigprice","bwght","fatheduc","motheduc","parity",
+                     "male","white","cigs","lbwght","bwghtlbs","packs","lfaminc")  
+
+
+# select variables
+lbwght <- BWGHT$lbwght # dependent variable: log(bwght)
+male <- BWGHT$male # independent variable: male
+parity <- BWGHT$parity # independent variable: parity
+lfaminc <- BWGHT$lfaminc # independent variable: log(faminc)
+packs <- BWGHT$packs # independent variable: packs
+
+# (i) OLS 
+reg_ols <- lm(lbwght ~ male + parity + lfaminc + packs)
+coef_ols <- coef(reg_ols)
+HCV.coef_ols <- vcovHC(reg_ols, type = 'HC')
+coef_ols.se <- sqrt(diag(HCV.coef_ols)) # White standard errors
+output_ols <- cbind(coef_ols,coef_ols.se)
+
+# (ii) 2SLS
+cigprice <- BWGHT$cigprice # IV: cigprice
+# Note that 2SLS should be estimated in one step to get correct standard errors
+reg_2sls <- ivreg(lbwght ~ packs+male+parity+lfaminc|cigprice+male+parity+lfaminc)
+coef_2sls <- coef(reg_2sls)
+HCV.coef_2sls <- vcovHC(reg_2sls, type = 'HC')
+coef_2sls.se <- sqrt(diag(HCV.coef_2sls)) # White standard errors
+output_2sls <- cbind(coef_2sls,coef_2sls.se)
+
+```
+
+
+The results shown in Table 1 show that the OLS estimate for the coefficient on $packs$ is negative and statistically significant, which is consistent with what we expect about smoking reducing babies' birthweights. However the 2SLS estimate is very imprecise (SE=1.0863), and the point estimate is large (0.7971) and positive. The interpretation of this would be that an additional pack of cigarettes consumed by the mother *increases* the birthweight of her baby by 80\%, which simply cannot be true. The discrepancy between these results suggests we should reconsider whether $cigprice$ is a valid instrument for $packs$. 
+
+
+
+
+### (d)
+
+```{r}
+# First stage: regress X (endogenous variable) on Z (instrumental variable)
+stage1 <- lm(packs ~ male + parity + lfaminc + cigprice)
+# predetermined regressors should be included in the list of instruments
+coef_stage1 <- coef(stage1)
+HCV.coef_stage1 <- vcovHC(stage1, type = 'HC')
+coef_stage1.se <- sqrt(diag(HCV.coef_stage1)) # White standard errors
+output_stage1 <- cbind(coef_stage1,coef_stage1.se)
+
+```
+
+We estimate the reduced form for $packs$ as follows:
+$$ \hat{packs} = \gamma_0 + \gamma_1 male + \gamma_2 parity + \gamma_3 \log(faminc) +\gamma_4 cigprice $$
+
+
+As shown in Table 2, the coefficient on $cigprice$ is very small and not at all significant. For $cigprice$ to be a valid instrument for $packs$, even if we were able to tell a good story about why $cigprice$ should be uncorrelated with $u$ (which is of course untestable), we would still need to be confident that the matrix $ZX'$ is very far from zero. However since the estimate for $\gamma_4$ is very close to zero and nowhere near being statistically significant even at the 5\% level, $cigprice$ does not satisfy the relevance condition and cannot be taken as a valid instrument.
+
+The results in Table 2 help explain why in part (c) the 2SLS results were so far off from the OLS results. This is because the instrument and covariates are very poor predictors of $packs$, so it makes sense that the point estimate on packs from 2SLS was so imprecise that it was basically indistinguishable from zero (despite the point estimate itself being large and positive). This is also a good example of a time when a point estimate is much less informative (and, in fact, misleading), and reporting a confidence interval would be much more useful to the reader. 
+
+
+```{r, results='asis'}
+# OLS vs 2SLS  Table
+texreg(list(reg_ols, reg_2sls), digits=4, caption.above=TRUE)
+# Reduced Form Table
+texreg(stage1, digits=4, caption.above=TRUE)
+```
+
+\newpage
+## Question 3
+
+
+
+
+
+```{r}
+# Prepare the data
+df <- read.table("PS2Data/CARD.raw", quote="\"", comment.char="")
+
+name_string <- "id   nearc2    nearc4    educ      age       fatheduc  motheduc  
+weight   momdad14  sinmom14  step14    reg661    reg662    reg663    reg664   
+reg665 reg666    reg667    reg668    reg669    south66   black     smsa   south    
+smsa66    wage      enroll    KWW       IQ        married   libcrd14  exper    
+lwage     expersq   "
+
+name_string <- gsub("[\r\n]", " ", name_string)
+name_string <- strsplit(name_string, " ")
+
+name_vec <- vector()
+for (i in name_string[[1]]) {
+  if (i != "1" & i != ""){
+    name_vec <- append(name_vec, i)
+  }
+}
+colnames(df) <- name_vec
+```
+
+# a
+
+In the table below, the $iid$ and $robust$ standard errors are quite similar ($robust$ standard errors are usually a little larger), so the inference (ttest and pvalue) is also quite similar.
+
+The $iid$ standard error assumes that the variance of the error term is constant and does not depend on independent variables. However, the $robust$ standard error does not assume this, so it can work under both homoskedasticity and heteroskedasticity.
+```{r, results='hide'}
+# Homoskedastic
+homo <- feols(lwage ~ educ + exper + expersq + black + south + smsa + smsa66 +
+              reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+              se = "iid", df)
+
+# Heteroskedastic
+hetero <- feols(lwage ~ educ + exper + expersq + black + south + smsa + smsa66 +
+                reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+                se = "hc1", df)
+
+out <- etable(homo, hetero, tex = TRUE, se.row = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+# b
+
+There exists a practically and statistically significant partial correlation between $educ$ and $nearc4$: the coefficient of $nearc4$ is $0.32$, which means indivisuals near 4 yr college have additional $0.32$ years of schooling. It's significant under $1\%$ level with both $iid$ and $robust$ standard errors.
+
+For some variables, the $robust$ standard error is a little larger, and for other variables, the $robust$ standard error is a little smaller. But they are still quite similar and the inference (ttest and pvalue) gives same conclusions. For $near4$, the $robust$ standard error is a little smaller, but the coefficient is both significant under $1\%$ level.
+```{r, results='hide'}
+reduce_homo <- feols(educ ~ nearc4 + exper + expersq + black + south + smsa + smsa66 +
+                     reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+                     se = "iid", df)
+
+reduce_hetero <- feols(educ ~ nearc4 + exper + expersq + black + south + smsa + smsa66 +
+                      reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+                      se = "hc1", df)
+
+out <- etable(reduce_homo, reduce_hetero, tex = TRUE, se.row = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+# c
+
+The IV estimate has wider CI and the lower bound is closer to 0, hence it's more conservative. However, the estimates from both IV and OLS are significant on $95 \%$ level since the lower bounds are both larger than 0.
+```{r, results='hide'}
+iv_c <- feols(lwage ~ exper + expersq + black + south + smsa + smsa66 +
+              reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668 |
+              educ ~ nearc4,
+              se = "hc1", df)
+
+out <- etable(iv_c, hetero, tex = TRUE, 
+              coefstat = c("confint"),
+              headers=list("IV" = 1, "OLS" = 1)) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+# d
+
+The table below presents estimation results from the reduced form. After adding $nearc2$, the coefficient of $nearc4$ is even a littler larger and the $se$ is essentially the same. However, the coefficient of $nearc2$ is way smaller than $nearc4$ and not significant. Therefore, $nearc4$ is more strongly related to $educ$ than $nearc2$. After adding $nearc2$, the adjusted R square also increased a little - the independent variables can jointly explain more variation of $educ$.
+```{r, results='hide'}
+reduce_d <- feols(educ ~ nearc2 + nearc4 + exper + expersq + black + south + smsa + smsa66 +
+                         reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668,
+                         se = "hc1", df)
+
+out <- etable(reduce_d, reduce_hetero, tex = TRUE, se.row = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+After using two IV, the coefficient increases to $0.16$, larger than former IV result ($0.13$) and the se is even smaller, so it does indicates a stronger relationship. The estimate is larger and we are more confident that it's significantly different from 0.
+
+```{r, results='hide'}
+iv_d <- feols(lwage ~ exper + expersq + black + south + smsa + smsa66 +
+              reg661 + reg662 + reg663 + reg664 + reg665 + reg666 + reg667 + reg668 |
+              educ ~ nearc2 + nearc4,
+              se = "hc1", df)
+
+out <- etable(iv_d, iv_c, tex = TRUE, 
+              headers=list("#IV:2" = 1, "#IV:1" = 1)) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+# e
+
+$IQ$ is significantly correlated with $nearc4$. Intuitively, $IQ$ is also correlated with $education$, so $near4$ might not be a valid IV for $education$ since it does not satisfy the exclusion assumption. The previous IV estimations might be biased.
+
+```{r, results='hide'}
+df$IQ <- as.numeric(df$IQ)
+ols_e <- feols(IQ ~ nearc4, se = "hc1", df)
+out <- etable(ols_e, tex = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+\newpage
+# f
+
+After controlling for $region$ variables, the coefficient of $nearc4$ is not significant anymore. Therefore, after controlling for these $region$ variables, $nearc4$ can serve as a valid IV for $education$ since we can exclude the bias led by $IQ$.
+
+```{r, results='hide'}
+df$IQ <- as.numeric(df$IQ)
+ols_f <- feols(IQ ~ nearc4 + smsa66 + reg661 + reg662 + reg669, se = "hc1", df)
+out <- etable(ols_f, ols_e, tex = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+
