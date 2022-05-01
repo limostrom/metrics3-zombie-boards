@@ -1,5 +1,9 @@
 Questions:
 1. Would it be valuable to market check the idea? (i.e., do activists target younger/old board memembers for replacement/enagement?)
+2. I feel like the death of a director should matter much more in firms where shareholder rights are weak (because then they have an opportunity to put someone better on the board) than in firms where shareholder rights are strong (because then the board would already more closely resemble the optimal one, so replacing the dead board member would present less of an opportunity to reoptimize?). Then the coefficient on the change in board tenure would be less about the tradeoff between learning and entrenchment on the board, and instead more about the extent to which the shareholders' and CEO's incentives are aligned, and whether the board was already optimized to the shareholders' preferences or not.
+	Caveats: (a) I don't know how shareholder rights / bargaining power are usually measured or if we have access to suitable variables we could use for that
+			 (b) Maybe shareholder rights and board entrenchment are the same story? I think shareholder rights is maybe more broad or a little different / at least the possible policy solutions to the problem would be different
+			 (c) They control for CEO shareholding and for classified/staggered boards - are these sufficient controls for shareholder bargaining power already?
 
 
 
