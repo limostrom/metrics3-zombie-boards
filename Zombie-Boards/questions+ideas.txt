@@ -7,14 +7,11 @@ Questions:
 
 
 
-
-
-
-
-
-
-
-
 --------------------------------------------------------------
 Extension Ideas:
 1. 
+
+
+--------------------------------------------------------------
+Other Thoughts:
+1. Usually when a paper has an event study but doesn't show the plots it's because the plots look like garbage
