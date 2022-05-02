@@ -1,0 +1,73 @@
+---
+title: "41903 Pset 3"
+author: "Andrew McKinley, Lauren Mostrom, Pietro Ramella, Francisco Ruela, and Bohan Yang"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(data.table)
+library(zoo)
+library(tidyr)
+library(ggpubr)
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(ivpack) # for IV
+library(Matrix)
+library(plm) # for panel data regressions
+library(multiwayvcov) # for calculate clustered standard errors
+
+```
+
+## Question 1
+
+
+\newpage
+## Question 2
+
+### (a)
+```{r}
+setwd("C:/Users/17036/OneDrive/Documents/GitHub/metrics3-zombie-boards/Psets/3")
+MURDER <- read.delim("PS3Data/MURDER_RAW.txt", header=FALSE)
+
+colnames(MURDER) <- c('id','state','year','mrdrte','exec','unem','d90','d93',      
+                      'cmrdrte','cexec','cunem','cexec1','cunem1')
+
+# Use only data for 1990 and 1993
+data <- MURDER %>%
+  filter(year==90 | year==93)
+
+reg_pooled <- lm(mrdrte~d93+exec+unem, data=data)
+### calculate standard errors 
+# standard homoskedastic standard errors
+se.homo_pooled <- sqrt(diag(vcov(reg_pooled))) 
+# robust standard errors
+HCV.coef_pooled <- vcovHC(reg_pooled, type = 'HC1')
+se.robust_pooled <- sqrt(diag(HCV.coef_pooled)) 
+# clustered standard errors
+CLCV.coef_pooled <- cluster.vcov(reg_pooled,data$state)
+se.cluster_pooled <- sqrt(diag(CLCV.coef_pooled))
+```
+
+
+\newpage
+```{r, results='asis'}
+# report standard errors in table
+stargazer(reg_pooled,title="Question 2(a) Pooled OLS",align=TRUE,digits=4,omit.stat = c("LL","ser","f","adj.rsq"),se=list(se.homo_pooled,se.robust_pooled,se.cluster_pooled))
+```
+
+
+
+## Question 3
+
+
+
+
+
+## Question 4
