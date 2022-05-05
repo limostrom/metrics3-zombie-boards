@@ -22,7 +22,7 @@ library(ivpack) # for IV
 library(Matrix)
 library(plm) # for panel data regressions
 library(multiwayvcov) # for calculate clustered standard errors
-
+library(texreg)
 ```
 
 ## Question 1
@@ -34,13 +34,13 @@ library(multiwayvcov) # for calculate clustered standard errors
 ### (a)
 ```{r}
 setwd("C:/Users/17036/OneDrive/Documents/GitHub/metrics3-zombie-boards/Psets/3")
-MURDER <- read.delim("PS3Data/MURDER_RAW.txt", header=FALSE)
+murder <- read.delim("PS3Data/MURDER_RAW.txt", header=FALSE)
 
-colnames(MURDER) <- c('id','state','year','mrdrte','exec','unem','d90','d93',      
+colnames(murder) <- c('id','state','year','mrdrte','exec','unem','d90','d93',      
                       'cmrdrte','cexec','cunem','cexec1','cunem1')
 
 # Use only data for 1990 and 1993
-data <- MURDER %>%
+data <- murder %>%
   filter(year==90 | year==93)
 
 reg_pooled <- lm(mrdrte~d93+exec+unem, data=data)
@@ -57,17 +57,81 @@ se.cluster_pooled <- sqrt(diag(CLCV.coef_pooled))
 
 
 \newpage
+
 ```{r, results='asis'}
-# report standard errors in table
-stargazer(reg_pooled,title="Question 2(a) Pooled OLS",align=TRUE,digits=4,omit.stat = c("LL","ser","f","adj.rsq"),se=list(se.homo_pooled,se.robust_pooled,se.cluster_pooled))
+texreg(list(reg_pooled, reg_pooled, reg_pooled), digits=4, caption.above=TRUE,
+       override.se = list(se.homo_pooled, se.robust_pooled, se.cluster_pooled),
+       custom.model.names=c("Homoskedastic", "Robust", "Clustered"))
 ```
 
 
+### (b)
+In this setting FE and FD are numerically identical because there are only two time periods, 1990 and 1993.
 
+### (c)
+*First Differences*
+```{r}
+data_90 <- data %>%
+  filter(year==90)
+data_93 <- data %>%
+  filter(year==93)
+data_fd <- left_join(data_90,data_93,by=c("id"))
+data_fd$delta_mrdrte <- data_fd$mrdrte.y-data_fd$mrdrte.x
+data_fd$delta_exec <- data_fd$exec.y-data_fd$exec.x
+data_fd$delta_unem <- data_fd$unem.y-data_fd$unem.x
+reg_fd <- lm(delta_mrdrte~delta_exec+delta_unem, data=data_fd)
+### calculate standard errors 
+# standard homoskedastic standard errors
+se.homo_fd <- sqrt(diag(vcov(reg_fd))) 
+# robust standard errors
+HCV.coef_fd <- vcovHC(reg_fd, type = 'HC1')
+se.robust_fd <- sqrt(diag(HCV.coef_fd)) 
+# clustered standard errors
+CLCV.coef_fd <- cluster.vcov(reg_fd,data_fd$state.x)
+se.cluster_fd <- sqrt(diag(CLCV.coef_fd))
+```
+\newpage
+```{r, results='asis'}
+texreg(list(reg_fd, reg_fd, reg_fd), digits=4, caption.above=TRUE,
+       override.se = list(se.homo_fd,se.robust_fd,se.cluster_fd),
+       custom.model.names=c("Homoskedastic", "Robust", "Clustered"))
+```
+
+
+*Fixed Effects*
+```{r}
+data_fe <- data %>%
+  group_by(id) %>%
+  mutate(mrdrte_demean = mrdrte-mean(mrdrte), exec_demean = exec-mean(exec), unem_demean = unem-mean(unem), d93_demean = d93-mean(d93))
+reg_fe <- lm(mrdrte_demean~exec_demean+unem_demean+d93,data=data_fe)
+### calculate standard errors 
+# standard homoskedastic standard errors
+se.homo_fe <- sqrt(diag(vcov(reg_fe))) 
+# robust standard errors
+HCV.coef_fe <- vcovHC(reg_fe, type = 'HC1')
+se.robust_fe <- sqrt(diag(HCV.coef_fe)) 
+# clustered standard errors
+CLCV.coef_fe <- cluster.vcov(reg_fe,data_fe$state)
+se.cluster_fe <- sqrt(diag(CLCV.coef_fe))
+```
+\newpage
+```{r, results='asis'}
+texreg(list(reg_fe, reg_fe, reg_fe), digits=4, caption.above=TRUE,
+       override.se = list(se.homo_fe,se.robust_fe,se.cluster_fe),
+       custom.model.names=c("Homoskedastic", "Robust", "Clustered"))
+```
+
+
+### (d)
+
+
+
+
+\newpage
 ## Question 3
 
 
 
 
-
+\newpage
 ## Question 4

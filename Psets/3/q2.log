@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.1)  1 MAY 2022 16:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.1)  4 MAY 2022 22:02
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -377,8 +377,14 @@ tex.def
 File: l3backend-pdftex.def 2022-04-20 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count291
 \l__pdf_internal_box=\box54
+) (q2.aux
+
+LaTeX Warning: Label `table:coefficients' multiply defined.
+
+
+LaTeX Warning: Label `table:coefficients' multiply defined.
+
 )
-No file q2.aux.
 \openout1 = `q2.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 111.
@@ -552,27 +558,47 @@ LaTeX Font Warning: Font shape `T1/lmtt/bx/it' in size <10> not available
 
 [2]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 166.
+(Font)              <10> on input line 163.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 166.
+(Font)              <7> on input line 163.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 166.
+(Font)              <5> on input line 163.
+[3] [4] [5] [6] [7] (q2.aux)
 
-! LaTeX Error: Illegal character in array arg.
+LaTeX Warning: There were multiply-defined labels.
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.166 ...bular}{@{\extracolsep{5pt}}lD{.}{.}{-4} }
-                                                   
+ ) 
 Here is how much of TeX's memory you used:
- 13704 strings out of 478547
- 219755 string characters out of 2841836
- 544398 words of memory out of 3000000
- 31654 multiletter control sequences out of 15000+600000
- 512000 words of font info for 91 fonts, out of 8000000 for 9000
+ 13759 strings out of 478547
+ 220246 string characters out of 2841836
+ 551797 words of memory out of 3000000
+ 31676 multiletter control sequences out of 15000+600000
+ 519764 words of font info for 98 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 74i,6n,77p,1001b,335s stack positions out of 10000i,1000n,20000p,200000b,80000s
+ 74i,11n,77p,1001b,344s stack positions out of 10000i,1000n,20000p,200000b,80000s
+{C:/Users/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ec.enc}{C
+:/Users/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}{C
+:/Users/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}{C
+:/Users/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}{C:/Us
+ers/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ts1.enc}<C:/Users
+/17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pfb><C:/Users
+/17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pfb><C:/Users
+/17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi10.pfb><C:/Users
+/17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi7.pfb><C:/Users/
+17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr10.pfb><C:/Users/1
+7036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr12.pfb><C:/Users/17
+036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr17.pfb><C:/Users/170
+36/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr7.pfb><C:/Users/17036
+/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmri10.pfb><C:/Users/17036
+/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb><C:/Users/17036
+/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy5.pfb><C:/Users/17036/
+AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy7.pfb><C:/Users/17036/A
+ppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtko10.pfb><C:/Users/17036/
+AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/17036/
+AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtti10.pfb>
+Output written on q2.pdf (7 pages, 289432 bytes).
+PDF statistics:
+ 175 PDF objects out of 1000 (max. 8388607)
+ 27 named destinations out of 1000 (max. 500000)
+ 26689 words of extra memory for PDF output out of 29859 (max. 10000000)
 
-!  ==> Fatal error occurred, no output PDF file produced!
