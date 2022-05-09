@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.1)  4 MAY 2022 22:02
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.1)  9 MAY 2022 09:01
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -381,9 +381,6 @@ File: l3backend-pdftex.def 2022-04-20 L3 backend support: PDF output (pdfTeX)
 
 LaTeX Warning: Label `table:coefficients' multiply defined.
 
-
-LaTeX Warning: Label `table:coefficients' multiply defined.
-
 )
 \openout1 = `q2.aux'.
 
@@ -556,33 +553,34 @@ LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
 LaTeX Font Warning: Font shape `T1/lmtt/bx/it' in size <10> not available
 (Font)              Font shape `T1/lmtt/b/sl' tried instead on input line 138.
 
-[2]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 163.
+(Font)              <10> on input line 154.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 163.
+(Font)              <7> on input line 154.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 163.
-[3] [4] [5] [6] [7] (q2.aux)
+(Font)              <5> on input line 154.
+[2] [3] [4] [5] [6] [7] (q2.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 13759 strings out of 478547
- 220246 string characters out of 2841836
- 551797 words of memory out of 3000000
+ 13770 strings out of 478547
+ 220367 string characters out of 2841836
+ 557796 words of memory out of 3000000
  31676 multiletter control sequences out of 15000+600000
- 519764 words of font info for 98 fonts, out of 8000000 for 9000
+ 520262 words of font info for 104 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 74i,11n,77p,1001b,344s stack positions out of 10000i,1000n,20000p,200000b,80000s
+ 74i,11n,77p,1001b,376s stack positions out of 10000i,1000n,20000p,200000b,80000s
 {C:/Users/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ec.enc}{C
-:/Users/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}{C
 :/Users/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}{C
 :/Users/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}{C:/Us
+ers/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}{C:/Us
+ers/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathex.enc}{C:/Us
 ers/17036/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ts1.enc}<C:/Users
 /17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pfb><C:/Users
 /17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pfb><C:/Users
+/17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmex10.pfb><C:/Users
 /17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi10.pfb><C:/Users
 /17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi7.pfb><C:/Users/
 17036/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr10.pfb><C:/Users/1
@@ -596,9 +594,9 @@ AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy7.pfb><C:/Users/17036/A
 ppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtko10.pfb><C:/Users/17036/
 AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/17036/
 AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtti10.pfb>
-Output written on q2.pdf (7 pages, 289432 bytes).
+Output written on q2.pdf (7 pages, 303060 bytes).
 PDF statistics:
- 175 PDF objects out of 1000 (max. 8388607)
- 27 named destinations out of 1000 (max. 500000)
+ 180 PDF objects out of 1000 (max. 8388607)
+ 26 named destinations out of 1000 (max. 500000)
  26689 words of extra memory for PDF output out of 29859 (max. 10000000)
 

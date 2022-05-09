@@ -55,18 +55,47 @@ CLCV.coef_pooled <- cluster.vcov(reg_pooled,data$state)
 se.cluster_pooled <- sqrt(diag(CLCV.coef_pooled))
 ```
 
+In the table below we report the IID standard errors, heteroskedasticity-robust standard errors, and clustered standard errors. Robust SEs were calculated as follows:
+
+$$
+\hat{\Omega} = \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1} \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}' \hat{\epsilon}_{it}^2 \right) \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1}
+$$
+
+Where $\hat{\epsilon}$ is the POLS residual. We also include clustered standard errors; however, if we suspect the observations are serially correlated (as would be implied by the use of clustered SEs) we should not be using POLS anyway. Nevertheless, clustered SEs were calculated as follows:
+
+$$
+\hat{\Omega} = \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1} \left( \frac{1}{NT} \sum_{i,t}  x_{it} x_{i,90}' \hat{\epsilon}_{it} \hat{\epsilon}_{i,90} + x_{it} x_{i,93}' \hat{\epsilon}_{it} \hat{\epsilon}_{i,93} \right) \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1}
+$$
 
 \newpage
 
 ```{r, results='asis'}
 texreg(list(reg_pooled, reg_pooled, reg_pooled), digits=4, caption.above=TRUE,
        override.se = list(se.homo_pooled, se.robust_pooled, se.cluster_pooled),
-       custom.model.names=c("Homoskedastic", "Robust", "Clustered"))
+       custom.model.names=c("IID", "Robust", "Clustered"),
+       caption = "Pooled OLS")
 ```
 
 
 ### (b)
-In this setting FE and FD are numerically identical because there are only two time periods, 1990 and 1993.
+In this setting FE and FD are numerically identical because there are only two time periods, 1990 and 1993. To see this, recall the fixed effect model:
+
+\begin{align*}
+  y_{i1} - \bar{y}_i &= (x_{i1} - \bar{x}_i)' \beta + \epsilon_{i1} - \bar{\epsilon}_i \\
+  y_{i1} - \left( \frac{y_{i1}+y_{i0}}{2} \right) &= \left( x_{i1} - \frac{x_{i1}+x_{i0}}{2} \right)' \beta + \epsilon_{i1} - \left( \frac{\epsilon_{i1}+\epsilon_{i0}}{2} \right) \\
+  \frac{y_{i1} - y_{i0}}{2} &= \left( \frac{x_{i1} - x_{i0}}{2} \right)' \beta + \frac{\epsilon_{i1} - \epsilon_{i0}}{2} \\
+  y_{i1} - y_{i0} &= (x_{i1} - x_{i0})' \beta + \epsilon_{i1} - \epsilon_{i0}
+\end{align*}
+
+Which is exactly the first differences model.
+
+In the table below we report only the results for FD. We chose FD because it reduces the procedure down to a cross-sectional dataset and only requires heterskedasticity-robust standard errors, rather than maintaining the panel data structure and requiring clustered standard errors. Clustered standard errors are reported in the table below, but only to illustrate that they are identical to robust in the first differences method when we only have two periods.
+
+
+There does not appear to be any deterrant effect of capital punishment; based on these results we fail to reject the null hypothesis that the coefficient on $exec$ is equal to zero.
+
+
+
 
 ### (c)
 *First Differences*
@@ -94,36 +123,18 @@ se.cluster_fd <- sqrt(diag(CLCV.coef_fd))
 ```{r, results='asis'}
 texreg(list(reg_fd, reg_fd, reg_fd), digits=4, caption.above=TRUE,
        override.se = list(se.homo_fd,se.robust_fd,se.cluster_fd),
-       custom.model.names=c("Homoskedastic", "Robust", "Clustered"))
+       custom.model.names=c("IID", "Robust", "Clustered"),
+       caption = "First Differences")
 ```
 
 
-*Fixed Effects*
-```{r}
-data_fe <- data %>%
-  group_by(id) %>%
-  mutate(mrdrte_demean = mrdrte-mean(mrdrte), exec_demean = exec-mean(exec), unem_demean = unem-mean(unem), d93_demean = d93-mean(d93))
-reg_fe <- lm(mrdrte_demean~exec_demean+unem_demean+d93,data=data_fe)
-### calculate standard errors 
-# standard homoskedastic standard errors
-se.homo_fe <- sqrt(diag(vcov(reg_fe))) 
-# robust standard errors
-HCV.coef_fe <- vcovHC(reg_fe, type = 'HC1')
-se.robust_fe <- sqrt(diag(HCV.coef_fe)) 
-# clustered standard errors
-CLCV.coef_fe <- cluster.vcov(reg_fe,data_fe$state)
-se.cluster_fe <- sqrt(diag(CLCV.coef_fe))
-```
-\newpage
-```{r, results='asis'}
-texreg(list(reg_fe, reg_fe, reg_fe), digits=4, caption.above=TRUE,
-       override.se = list(se.homo_fe,se.robust_fe,se.cluster_fe),
-       custom.model.names=c("Homoskedastic", "Robust", "Clustered"))
-```
+As explained above, we used heteroskedasticity-robust SEs because the assumptions required for IID standard errors are too strong, and in a first differences model with only two periods, clustered and robust SEs are identical (as demonstrated in the table above).
+
+From these results the coefficient on $exec$ is negative and statistically significant, so it does appear that there is a deterrant effect of capital punishment.
 
 
 ### (d)
-
+FD is preferred in this context because POLS requires the assumption that there is no serial correlation between observations. This is an unrealistic assumption in this setting because there could be many persistent features of states that are correlated both with executions and with the murder rate.
 
 
 
