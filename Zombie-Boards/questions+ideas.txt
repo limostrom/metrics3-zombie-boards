@@ -42,3 +42,13 @@ Extension Ideas:
 --------------------------------------------------------------
 Other Thoughts:
 1. Usually when a paper has an event study but doesn't show the plots it's because the plots look like garbage
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To Do:
+-Annoying data things:
+	-Match legacy_pps_id with gvkey for the director legacy dataset from WRDS (fuzzy merge will probably mostly work)
+	-meetingdate to datadate match?
+	-
+-Actually replicate main table 
+-Choose a direction for the extension (identify one specific source of endogeneity to target for additional analyses)
+***Set up meeting time with CH -- i feel like we just need to do this to give us a hard deadline to have Things
