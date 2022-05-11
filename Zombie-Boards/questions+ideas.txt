@@ -26,7 +26,7 @@ From Francisco:
 		like it must be hard to replace a seniors board member in something start up-here
 	Big v small step effects?
 	Should look at the histograms of the tenure/age type variables
-	I imagine there's a spastic issue at the extreme values
+	I imagine there's a sparcity issue at the extreme values
 	What is the policy implication of the paper?
 		I guess it must come from the gov - but firms clearly shouldn't fire based solely on tenure
 	CEO tenure - Board tenure as a quick and dirty measure of entrenchment?

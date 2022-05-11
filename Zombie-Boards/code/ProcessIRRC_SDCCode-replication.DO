@@ -153,6 +153,8 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	duplicates drop 
 	sort gvkey meetingdate
 	merge 1:1 gvkey meetingdate using "C:\Work\WRDS\data\meetingdate_datadate_match" /*match meetingdate to datadate*/
+	/* -> They don't actually explain what this is. I think we need to merge the
+			meetingdates and datadates within some range and then keep the closest one? Idk.*/
 	keep if _merge==3
 	drop _merge 
 	save temp,replace

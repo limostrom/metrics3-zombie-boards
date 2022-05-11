@@ -1,6 +1,9 @@
 clear all
 set matsize 1000
-cd "C:\Work\tenure\Program\JAR Code\"
+
+
+*Filepath for Lauren's computer: 
+cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spring\zombie-boards-data"
 
 /*This program generates the datasets used in Huang and Hilary (2018)*/
 
@@ -9,11 +12,11 @@ cd "C:\Work\tenure\Program\JAR Code\"
 *============================================================================
 	
 /*Process and Merge Variables from IRRC governance dataset*/
-	use "C:\Work\WRDS\Original data\govlegacy19902006.dta",clear /*governance legacy file*/
+	use "rawdata/govlegacy19902006.dta",clear /*governance legacy file*/
 	keep cn6 year cboard
 	save temp2,replace
 	
-	use "C:\Work\WRDS\Original data\gov20072015.dta",clear
+	use "rawdata/gov20072015.dta",clear
 	gen cn6=substr(cusip,1,6) 
 	keep cn6 year cboard
 	replace cboard=upper(cboard)
@@ -26,7 +29,7 @@ cd "C:\Work\tenure\Program\JAR Code\"
 	duplicates drop
 	save cboard,replace
 
-	use "C:\Work\tenure\Program\JAR Code\dataset_irrc.dta",clear /*processed under ProcessIRRC_SDCCode.do*/
+	use "rawdata/dataset_irrc.dta",clear /*processed under ProcessIRRC_SDCCode.do*/
 	merge m:1 cn6 year using cboard
 	drop if _merge==2
 	drop _merge
