@@ -9,6 +9,12 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 *=======================================================================
 /*Process IRRC Director dataset*/
 *=======================================================================
+	use "rawdata/crspcomp19502010_prc0mth.dta", clear
+		keep gvkey cusip
+		duplicates drop
+		tempfile cusip_gvkeys
+		save `cusip_gvkeys', replace
+		
 	use "rawdata\irrc_director20072010.dta", clear /* IRRC Director dataset */
 	/*Some variables changed from 0/1 to Yes/No,
 		audit_membership and comp_membership changed to member/chair/empty */
@@ -21,10 +27,19 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 		gen byte `var' = inlist(`var'_str,"Yes","member","chair")
 	}
 	append using "rawdata/irrc_directorlegacy19962006.dta", force /*IRRC director legacy dataset*/
-	ren director_detail_id did // hopefully this is right?
+	egen did = group(fullname)
+	merge m:1 cusip using `cusip_gvkeys', keepus(gvkey) keep(1 3)
 	
 	sort gvkey meetingdate did
 	replace outside_public_boards=0 if outside_public_boards==.
+	gen I_outsider = primary_employer != name
+	gen I_insider = primary_employer == name
+	gen I_ind = primary_employer != name
+	bys did year: egen n_directorships = count(meetingdate)
+	gen I_busy = n_directorships > 3
+		drop n_directorships
+	gen I_ceochair = employment_ceo == 1 & employment_chairman == 1
+	
 
 	/*board tenure*/
 	gen tenure=year-dirsince
@@ -115,22 +130,26 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	drop prop2_born1910 prop2_born1920 prop2_born1930 prop2_born1940 prop2_born1950 prop2_born1960 prop2_born1970	
 
 	/*%Outside executives*/
-	gen I=1 if I_insider~=1&(employment_cfo==1|employment_coo==1|employment_evp==1|employment_svp==1|employment_treasure==1|employment_vp==1)
+	gen I=1 if I_insider~=1&(employment_cfo==1|employment_coo==1|employment_evp==1|employment_svp==1|employment_treasurer==1|employment_vp==1)
 	replace I=0 if I==.
+	gen Iceo = 1 if I_insider != 1 & employment_ceo==1
 	by gvkey meetingdate: egen num_outnonceoexec=sum(I)
+	bys gvkey meetingdate: egen num_outceo=sum(Iceo)
 	gen prop_outnonceoexec=num_outnonceoexec/num_dir
-	rename prop_ceo prop_outceo
+	gen prop_outceo = num_outceo/num_dir
+	*rename prop_ceo prop_outceo // this doesn't work?
 	gen prop_outexec=prop_outnonceoexec+prop_outceo
-	drop I
+	drop I Iceo
 	
-	/*Director shareholding*/		
+	/*Director shareholding*/ /* this variable simply doesn't exist		
 	replace non_employee_voting=0 if non_employee_voting==.
 	by gvkey meetingdate: egen avgboard_voting=mean(non_employee_voting)
 	gen I=non_employee_voting if I_outsider==1
 	by gvkey meetingdate: egen avgoutsider_voting=mean(I)
 	drop I
+	*/
 	
-	keep gvkey year meetingdate  tenure_sd_outsider tenure_avg_outsider I_ceochair  I_boardind num_busy I_interlock num_dir blau_gender blau_ethnic blau_age avgoutsider_voting prop_age70 age_avg_outsider prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960
+	keep gvkey year meetingdate  tenure_sd_outsider tenure_avg_outsider I_ceochair  I_boardind num_busy I_interlock num_dir blau_gender blau_ethnic blau_age /*avgoutsider_voting prop_age70 age_avg_outsider*/ prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960
 	duplicates drop 
 	sort gvkey meetingdate
 	merge 1:1 gvkey meetingdate using "C:\Work\WRDS\data\meetingdate_datadate_match" /*match meetingdate to datadate*/
