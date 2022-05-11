@@ -4,7 +4,34 @@ Questions:
 	Caveats: (a) I don't know how shareholder rights / bargaining power are usually measured or if we have access to suitable variables we could use for that
 			 (b) Maybe shareholder rights and board entrenchment are the same story? I think shareholder rights is maybe more broad or a little different / at least the possible policy solutions to the problem would be different
 			 (c) They control for CEO shareholding and for classified/staggered boards - are these sufficient controls for shareholder bargaining power already?
-
+From Francisco:
+	What about general age?
+	Firm age? 
+	How are tenures counted after a merger?
+	What about in industry, but non0firm specific experience? 
+		Maybe a good instrument to pull out experience effects
+		Industry specific v general management experience?
+	I think the idea that a sudden death only affects firm performance through change in board tenure to be absurd
+	In places with comply and explain rules, the argument of this paper seems absolutely absurd, surely only ultra high quality or ultra entrenched directors would be held
+		other shapes:
+			max (tenure)
+			max - mean/median
+			2nd longest service>?
+	Kind of unsure what the actual economic significance of these results are - like a bp? Why do we care even if stat sig?
+	Honestly really curious about investigating suicide stuff a good bit
+	Event study - uncertainty might capture most of the effect here
+		what about some measurement of quality in there too?
+	Succession seems super important here - and I imagine some firms may have easier times filling spots than others
+		especially firm age must matter here right?
+		like it must be hard to replace a seniors board member in something start up-here
+	Big v small step effects?
+	Should look at the histograms of the tenure/age type variables
+	I imagine there's a spastic issue at the extreme values
+	What is the policy implication of the paper?
+		I guess it must come from the gov - but firms clearly shouldn't fire based solely on tenure
+	CEO tenure - Board tenure as a quick and dirty measure of entrenchment?
+	Other diversity variables?
+	Curious about some general firm performance statistics with the data here
 
 
 --------------------------------------------------------------
