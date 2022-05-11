@@ -34,6 +34,14 @@ From Francisco:
 	Curious about some general firm performance statistics with the data here
 
 
+From Bohan:
+- About square term:
+	1. Are there enough observations on the right side of the "best tenure"?
+	2. Maybe need to control the square term of firm age
+- About death sample:
+	1. They did not use a panel model - only cross-sectional regressions
+	2. What about using sudden death as IV?
+
 --------------------------------------------------------------
 Extension Ideas:
 1. 
