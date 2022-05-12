@@ -1,5 +1,6 @@
 Questions:
 1. Would it be valuable to market check the idea? (i.e., do activists target younger/old board memembers for replacement/enagement?)
+	datasets w activist involement activists would target underperforming in early years of tenure, but will only affect the tail end of the sample (maybe just carl icahn), or maybe replace an older director
 2. I feel like the death of a director should matter much more in firms where shareholder rights are weak (because then they have an opportunity to put someone better on the board) than in firms where shareholder rights are strong (because then the board would already more closely resemble the optimal one, so replacing the dead board member would present less of an opportunity to reoptimize?). Then the coefficient on the change in board tenure would be less about the tradeoff between learning and entrenchment on the board, and instead more about the extent to which the shareholders' and CEO's incentives are aligned, and whether the board was already optimized to the shareholders' preferences or not.
 	Caveats: (a) I don't know how shareholder rights / bargaining power are usually measured or if we have access to suitable variables we could use for that
 			 (b) Maybe shareholder rights and board entrenchment are the same story? I think shareholder rights is maybe more broad or a little different / at least the possible policy solutions to the problem would be different
@@ -33,6 +34,7 @@ From Francisco:
 	Other diversity variables?
 	Curious about some general firm performance statistics with the data here
 
+"barbarians at the gate" style M&A - more of an 80s thing though
 
 From Bohan:
 - About square term:
@@ -42,21 +44,34 @@ From Bohan:
 	1. They did not use a panel model - only cross-sectional regressions
 	2. What about using sudden death as IV?
 
---------------------------------------------------------------
-Extension Ideas:
-1. 
 
+CEO fixed effects- tenure 2 years doesn't make sense
 
---------------------------------------------------------------
+If you replaced an indirect director with an insider, that should have different implication than if you replaced them with another outsider
+
+Sparsely populated observations for high tenure
+
+If you die before the shareholder meeting - somethimes the board replaces them and sometimes the shareholders, might be different (esp. when board meetings are infrequent)
+
+Bebchuk index of CEO entrenchment; something related to proposals 
+- skim through provisions - the whole thing is insane but individual ones 
+-shareholder special meetings?
+-freq of meetings
+Activist dataset - everyone w/ board replacement demand
+Director ownership
+-new director appointments related to existing interlocks
+
+disentangling firm experience vs industry experience
+	->if the replacement for an outsider is in the same industry vs different industry
+
 Other Thoughts:
 1. Usually when a paper has an event study but doesn't show the plots it's because the plots look like garbage
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To Do:
 -Annoying data things:
-	-Match legacy_pps_id with gvkey for the director legacy dataset from WRDS (fuzzy merge will probably mostly work)
-	-meetingdate to datadate match?
+	-Match legacy_pps_id with gvkey for the director legacy dataset from WRDS (fuzzy merge will probably mostly work) - Andrew & Pietro
+	-meetingdate to datadate match - these dates don't line up exactly so (I think) we need to match whichever ones are the closest to each other and then go from there - Francisco
 	-
 -Actually replicate main table 
 -Choose a direction for the extension (identify one specific source of endogeneity to target for additional analyses)
-***Set up meeting time with CH -- i feel like we just need to do this to give us a hard deadline to have Things
