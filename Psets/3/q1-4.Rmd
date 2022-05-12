@@ -1,0 +1,283 @@
+---
+title: "41903 Pset 3"
+author: "Andrew McKinley, Lauren Mostrom, Pietro Ramella, Francisco Ruela, and Bohan Yang"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(data.table)
+library(zoo)
+library(tidyr)
+library(ggpubr)
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(ivpack) # for IV
+library(Matrix)
+library(plm) # for panel data regressions
+library(multiwayvcov) # for calculate clustered standard errors
+library(texreg)
+library(fixest)
+library(kableExtra)
+```
+
+## Question 1
+
+### (a)
+Adding aggregate time effects captures macro trends that affects all countries in certain periods, for example a recession that interests all countries in a given year.
+
+
+### (b)
+The country fixed effects $\alpha_i$ capture unobserved heterogeneity that is constant within country over the examined period, for example levels of natural resources, or institutional factors.
+
+### (c)
+Economic reasoning suggests a negative $\delta_1$: because higher tax rates makes investment less profitable, we would expect that a decrease in investment would follow higher marginal tax rates.
+
+### (d)
+Rewrite the model in matrix form:
+    $$Y = \theta R + \alpha D + \gamma Z + \delta_1 tax + \delta_2 disaster + u = \alpha D + \beta X + u$$
+    where $Y_{it} = log(investment_{it}),\ \beta = [\delta_1, \delta_2, \gamma', \theta'],\ X = [tax',disaster',Z',R']'$.\\
+    Because fixed effects, $\delta = [\delta_1,\delta_2]$, and an intercept cannot be jointly identified, I need to choose a normalization: set to zero the intercept and the first time fixed effect. If we are willing to assume strict exogeneity, that is $tax$ and $disaster$ are uncorrelated with $\epsilon$ at every time period, we can then estimate using OLS the coefficients $$(\hat{\beta}_{FE},\hat{\alpha})=(W'W )^{-1}(W'Y)$$ 
+    where $W=[X\ D]$.\\
+    To compute the standard errors, assuming observations are independent across countries, $\hat{V} = \hat{\sigma}^2\hat{Q}^{-1}$, where $$\hat{\sigma}^2=\frac{1}{NT}\sum_{i,t}e_{it}^2, \quad e_{it} = y_{it} - \Bar{y}_i - (x_{it} - \Bar{x}_i)'\hat{\beta}_{FE},\ k=dim(x_{it})$$
+    $$\hat{Q} = \frac{1}{NT}\sum_{i,t} (x_{it} - \Bar{x}_i)(x_{it} - \Bar{x}_i)'$$.
+
+### (e)
+It seems unlikely that we can rule out dynamics between new capital investments and changes in marginal taxes or natural disasters, yet, $tax_{it}$ may still violate strict exogeneity because the taxing authority may choose $tax_{it}$ in response of low/excessive levels of observed investment, therefore $E[x_{it},u{it-j}]\ne0$ for some $j=1,..$. There are not real issues with natural disasters if we rule out persistent effects, and therefore dynamics. 
+
+
+\newpage
+## Question 2
+
+### (a)
+```{r}
+#setwd("C:/Users/17036/OneDrive/Documents/GitHub/metrics3-zombie-boards/Psets/3")
+murder <- read.delim("PS3Data/MURDER_RAW.txt", header=FALSE)
+
+colnames(murder) <- c('id','state','year','mrdrte','exec','unem','d90','d93',      
+                      'cmrdrte','cexec','cunem','cexec1','cunem1')
+
+# Use only data for 1990 and 1993
+data <- murder %>%
+  filter(year==90 | year==93)
+
+reg_pooled <- lm(mrdrte~d93+exec+unem, data=data)
+### calculate standard errors 
+# standard homoskedastic standard errors
+se.homo_pooled <- sqrt(diag(vcov(reg_pooled))) 
+# robust standard errors
+HCV.coef_pooled <- vcovHC(reg_pooled, type = 'HC1')
+se.robust_pooled <- sqrt(diag(HCV.coef_pooled)) 
+# clustered standard errors
+CLCV.coef_pooled <- cluster.vcov(reg_pooled,data$state)
+se.cluster_pooled <- sqrt(diag(CLCV.coef_pooled))
+```
+
+In the table below we report the IID standard errors, heteroskedasticity-robust standard errors, and clustered standard errors. Robust SEs were calculated as follows:
+
+$$
+\hat{\Omega} = \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1} \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}' \hat{\epsilon}_{it}^2 \right) \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1}
+$$
+
+Where $\hat{\epsilon}$ is the POLS residual. We also include clustered standard errors; however, if we suspect the observations are serially correlated (as would be implied by the use of clustered SEs) we should not be using POLS anyway. Nevertheless, clustered SEs were calculated as follows:
+
+$$
+\hat{\Omega} = \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1} \left( \frac{1}{NT} \sum_{i,t}  x_{it} x_{i,90}' \hat{\epsilon}_{it} \hat{\epsilon}_{i,90} + x_{it} x_{i,93}' \hat{\epsilon}_{it} \hat{\epsilon}_{i,93} \right) \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1}
+$$
+
+\newpage
+
+```{r, results='asis'}
+texreg(list(reg_pooled, reg_pooled, reg_pooled), digits=4, caption.above=TRUE,
+       override.se = list(se.homo_pooled, se.robust_pooled, se.cluster_pooled),
+       custom.model.names=c("IID", "Robust", "Clustered"),
+       caption = "Pooled OLS")
+```
+
+
+### (b)
+In this setting FE and FD are numerically identical because there are only two time periods, 1990 and 1993. To see this, recall the fixed effect model:
+
+\begin{align*}
+  y_{i1} - \bar{y}_i &= (x_{i1} - \bar{x}_i)' \beta + \epsilon_{i1} - \bar{\epsilon}_i \\
+  y_{i1} - \left( \frac{y_{i1}+y_{i0}}{2} \right) &= \left( x_{i1} - \frac{x_{i1}+x_{i0}}{2} \right)' \beta + \epsilon_{i1} - \left( \frac{\epsilon_{i1}+\epsilon_{i0}}{2} \right) \\
+  \frac{y_{i1} - y_{i0}}{2} &= \left( \frac{x_{i1} - x_{i0}}{2} \right)' \beta + \frac{\epsilon_{i1} - \epsilon_{i0}}{2} \\
+  y_{i1} - y_{i0} &= (x_{i1} - x_{i0})' \beta + \epsilon_{i1} - \epsilon_{i0}
+\end{align*}
+
+Which is exactly the first differences model.
+
+In the table below we report only the results for FD. We chose FD because it reduces the procedure down to a cross-sectional dataset and only requires heterskedasticity-robust standard errors, rather than maintaining the panel data structure and requiring clustered standard errors. Clustered standard errors are reported in the table below, but only to illustrate that they are identical to robust in the first differences method when we only have two periods.
+
+
+There does not appear to be any deterrant effect of capital punishment; based on these results we fail to reject the null hypothesis that the coefficient on $exec$ is equal to zero.
+
+
+
+
+### (c)
+*First Differences*
+```{r}
+data_90 <- data %>%
+  filter(year==90)
+data_93 <- data %>%
+  filter(year==93)
+data_fd <- left_join(data_90,data_93,by=c("id"))
+data_fd$delta_mrdrte <- data_fd$mrdrte.y-data_fd$mrdrte.x
+data_fd$delta_exec <- data_fd$exec.y-data_fd$exec.x
+data_fd$delta_unem <- data_fd$unem.y-data_fd$unem.x
+reg_fd <- lm(delta_mrdrte~delta_exec+delta_unem, data=data_fd)
+### calculate standard errors 
+# standard homoskedastic standard errors
+se.homo_fd <- sqrt(diag(vcov(reg_fd))) 
+# robust standard errors
+HCV.coef_fd <- vcovHC(reg_fd, type = 'HC1')
+se.robust_fd <- sqrt(diag(HCV.coef_fd)) 
+# clustered standard errors
+CLCV.coef_fd <- cluster.vcov(reg_fd,data_fd$state.x)
+se.cluster_fd <- sqrt(diag(CLCV.coef_fd))
+```
+\newpage
+```{r, results='asis'}
+texreg(list(reg_fd, reg_fd, reg_fd), digits=4, caption.above=TRUE,
+       override.se = list(se.homo_fd,se.robust_fd,se.cluster_fd),
+       custom.model.names=c("IID", "Robust", "Clustered"),
+       caption = "First Differences")
+```
+
+
+As explained above, we used heteroskedasticity-robust SEs because the assumptions required for IID standard errors are too strong, and in a first differences model with only two periods, clustered and robust SEs are identical (as demonstrated in the table above).
+
+From these results the coefficient on $exec$ is negative and statistically significant, so it does appear that there is a deterrant effect of capital punishment.
+
+
+### (d)
+FD is preferred in this context because POLS requires the assumption that there is no serial correlation between observations. This is an unrealistic assumption in this setting because there could be many persistent features of states that are correlated both with executions and with the murder rate.
+
+
+
+\newpage
+## Question 3
+
+\textit{Compute the bias and root-mean-squared-error of each estimator. Form a histogram for each estimator. Do the histograms appear to be approximately normal centered over the true parameter value? Comment on what you think you learn that is generalizable from
+this exercise.}
+
+First, we include the tables of the bias and RMSE for the instance where T = 6.
+
+\begin{table}[!htbp] \centering 
+  \caption{T=6} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+\multicolumn{1}{c}{} & \multicolumn{1}{c}{Fixed-Effects} & \multicolumn{1}{c}{First-Difference} & \multicolumn{1}{c}{Hahn-Kuersteiner} & \multicolumn{1}{c}{Jackknife} \\ 
+\hline \\[-1.8ex] 
+\multicolumn{1}{c}{Bias\_rho=  0} & -0.164 & 0.006 & -0.025 & 0.006 \\ 
+\multicolumn{1}{c}{Bias\_rho = 0.5} & -0.260 & 0.007 & -0.054 & 0.148 \\ 
+\multicolumn{1}{c}{Bias\_rho = 0.95} & -0.262 & 0.023 & 0.020 & 0.026 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0} & 0.168 & 0.078 & 0.051 & 0.089 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0.5} & 0.264 & 0.132 & 0.073 & 0.162 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0.95} & 0.264 & 0.239 & 0.049 & 0.043 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table} 
+
+\includegraphics[scale=0.75]{PS3-Q3/T6 Plots.png}
+
+Next, we include the same for the case where T = 25.
+
+\begin{table}[!htbp] \centering 
+  \caption{T=25} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+\multicolumn{1}{c}{} & \multicolumn{1}{c}{Fixed-Effects} & \multicolumn{1}{c}{First-Difference} & \multicolumn{1}{c}{Hahn-Kuersteiner} & \multicolumn{1}{c}{Jackknife} \\ 
+\hline \\[-1.8ex] 
+\multicolumn{1}{c}{Bias\_rho = 0} & -0.040 & -0.0001 & -0.002 & -0.0004 \\ 
+\multicolumn{1}{c}{Bias\_rho = 0.5} & -0.062 & 0.003 & -0.004 & 0.230 \\ 
+\multicolumn{1}{c}{Bias\_rho = 0.95} & -0.045 & 0.003 & 0.031 & 0.049 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0} & 0.045 & 0.031 & 0.021 & 0.046 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0.5} & 0.064 & 0.040 & 0.020 & 0.231 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0.95} & 0.046 & 0.068 & 0.032 & 0.049 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table} 
+\includegraphics[scale=0.75]{PS3-Q3/T25.png}
+
+
+We note that the distributions do appear to be approximately centered over the true value in a few cases, notably those that are not the fixed effects estimator which appears to have a wider spread and weaker identification. However, some are still a bit off to either direction. We can also see, as we learned in class, that as $\frac{N}{T}$ gets smaller that our inferences are better. In this case when T = 25. 
+
+It also appears that the First Difference IV estimator works better for lower values of $\rho$. This makes sense as the first instrument becomes weaker as $\rho$ increases. Turning to the bias corrected estimates, it is clear that both out perform the fixed effects estimator. We note, however, that the distribution for the Hahn-Kuersteiner estimator does appear to have wider tails than the Jackknife estimator. This could be caused by the fact that it corrects only for the first order bias. We also note that for T=25 and $\rho=0.5$ our Jackknife estimator appears to be off, while it is fine else where. This however does not appear to be generalizable. 
+
+
+
+\newpage
+## Question 4
+
+### (a)
+
+Assumption: after controlling for *Log of state nonfarm employment*, *state fixed effect* (all the non-observable state-level factors influencing both outcome and the implication of policy, and don't change over time) and *year fixed effect* (all the non-observable year-level macroeconomics factors influencing both outcome and the implication of policy), implication of policy is independent on the error term.
+
+Implication: the implication of contract exceptions increases THS employment by $12.8\%$, while this is not statistically significant.
+```{r, results='hide'}
+df <- read.table("PS3Data/autor_out2.txt", header = TRUE, 
+                 quote="\"", comment.char="")
+
+a <- feols(lnths ~ mico + lnemp | s + t, cluster = 's', df)
+out <- etable(a, tex = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+
+### (b)
+Assumption: after controlling for *Log of state nonfarm employment*, *state fixed effect* (all the non-observable state-level factors influencing both outcome and the implication of policy, and don't change over time), *year fixed effect* (all the non-observable year-level macroeconomics factors influencing both outcome and the implication of policy) and *state-level time trends* (states can have their own linear time trends over the years), implication of policy is independent on the error term.
+
+Implication: the implication of contract exceptions increases THS employement by $14.5\%$, which is statistically significant.
+```{r, results='hide'}
+b <- feols(lnths ~ mico + lnemp | s + t + s[t], cluster = 's', df)
+out <- etable(b, tex = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+### (c)
+```{r, results='hide'}
+c <- feols(lnths ~ 1 | s + t | mico ~ lnemp, cluster = 's', df)
+out <- etable(c, tex = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
+### (d)
+```{r, results='hide'}
+df <- panel(df, panel.id = c('s', 't'))
+  
+d_a <- feols(lnths ~ mico + lnemp + 
+               l(mico, 1) + l(mico, 2) + l(mico, 3) + l(mico, 4) +
+               f(mico, 1) + f(mico, 2) + f(mico, 3) + f(mico, 4) 
+               | s + t, cluster = 's', df)
+d_b <- feols(lnths ~ mico + lnemp + 
+               l(mico, 1) + l(mico, 2) + l(mico, 3) + l(mico, 4) +
+               f(mico, 1) + f(mico, 2) + f(mico, 3) + f(mico, 4) 
+               | s + t + s[t], cluster = 's', df)
+out <- etable(d_a, d_b, tex = TRUE) 
+```
+
+```{r, include=knitr::is_latex_output()}
+knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
+```
+
