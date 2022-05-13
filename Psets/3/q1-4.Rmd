@@ -512,7 +512,6 @@ stargazer(output25,title="Q1 T=25",align=TRUE,digits=3)
 
 ```
 
-
 \newpage
 ## Question 4
 
@@ -612,7 +611,4 @@ coefplot(d_b, drop = 'lnemp',
          main = "Model B",
          pt.join = TRUE)
 ```
-
-
-
 
