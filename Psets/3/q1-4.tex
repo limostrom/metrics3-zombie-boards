@@ -588,13 +588,7 @@ else where. This however does not appear to be generalizable.
           \AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\StringTok{"FE(1)"}\NormalTok{, }\StringTok{"FE(2)"}\NormalTok{, }\StringTok{"FE(3)"}\NormalTok{, }\StringTok{"FD(1)"}\NormalTok{, }\StringTok{"FD(2)"}\NormalTok{, }\StringTok{"FD(3)"}\NormalTok{,}\StringTok{"HK(1)"}
 \NormalTok{                     , }\StringTok{"HK(2)"}\NormalTok{,  }\StringTok{"HK(3)"}\NormalTok{, }\StringTok{"JK(1)"}\NormalTok{, }\StringTok{"JK(2)"}\NormalTok{,}\StringTok{"JK(3)"}\NormalTok{),}
           \AttributeTok{ncol =} \DecValTok{3}\NormalTok{, }\AttributeTok{nrow =} \DecValTok{4}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
-\includegraphics{q1-4_files/figure-latex/unnamed-chunk-5-1.pdf}
-
-\begin{Shaded}
-\begin{Highlighting}[]
 \CommentTok{\# create table for bias and rmse T=6}
 \NormalTok{bias6 }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(bias\_fe,bias\_fd,bias\_hk,bias\_jk)}
 \NormalTok{rmse6 }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(rmse\_fe,rmse\_fd,rmse\_hk,rmse\_jk)}
@@ -602,35 +596,7 @@ else where. This however does not appear to be generalizable.
 \FunctionTok{colnames}\NormalTok{(output6) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Fixed{-}Effects"}\NormalTok{,}\StringTok{"First{-}Difference"}\NormalTok{,}\StringTok{"Hahn{-}Kuersteiner"}\NormalTok{,}\StringTok{"Jackknife"}\NormalTok{)}
 \FunctionTok{rownames}\NormalTok{(output6) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Bias\_rho=0"}\NormalTok{,}\StringTok{"Bias\_rho=0.5"}\NormalTok{,}\StringTok{"Bias\_rho=0.95"}\NormalTok{,}\StringTok{"RMSE\_rho=0"}\NormalTok{,}\StringTok{"RMSE\_rho=0.5"}\NormalTok{,}\StringTok{"RMSE\_rho=0.95"}\NormalTok{)}
 \FunctionTok{stargazer}\NormalTok{(output6,}\AttributeTok{title=}\StringTok{"Q1 T=6"}\NormalTok{,}\AttributeTok{align=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{digits=}\DecValTok{3}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
-\begin{verbatim}
-## 
-## % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-## % Date and time: Thu, May 12, 2022 - 9:46:54 PM
-## % Requires LaTeX packages: dcolumn 
-## \begin{table}[!htbp] \centering 
-##   \caption{Q1 T=6} 
-##   \label{} 
-## \begin{tabular}{@{\extracolsep{5pt}} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
-## \\[-1.8ex]\hline 
-## \hline \\[-1.8ex] 
-## \multicolumn{1}{c}{} & \multicolumn{1}{c}{Fixed-Effects} & \multicolumn{1}{c}{First-Difference} & \multicolumn{1}{c}{Hahn-Kuersteiner} & \multicolumn{1}{c}{Jackknife} \\ 
-## \hline \\[-1.8ex] 
-## \multicolumn{1}{c}{Bias\_rho=0} & -0.166 & 0.003 & -0.027 & 0.003 \\ 
-## \multicolumn{1}{c}{Bias\_rho=0.5} & -0.264 & -0.004 & -0.058 & 0.143 \\ 
-## \multicolumn{1}{c}{Bias\_rho=0.95} & -0.258 & 1.582 & 0.023 & 0.026 \\ 
-## \multicolumn{1}{c}{RMSE\_rho=0} & 0.170 & 0.079 & 0.053 & 0.091 \\ 
-## \multicolumn{1}{c}{RMSE\_rho=0.5} & 0.267 & 0.138 & 0.075 & 0.158 \\ 
-## \multicolumn{1}{c}{RMSE\_rho=0.95} & 0.261 & 49.549 & 0.048 & 0.043 \\ 
-## \hline \\[-1.8ex] 
-## \end{tabular} 
-## \end{table}
-\end{verbatim}
-
-\begin{Shaded}
-\begin{Highlighting}[]
 \CommentTok{\#Simulation Parameters for T = 25}
 \NormalTok{N }\OtherTok{\textless{}{-}} \DecValTok{100}
 \NormalTok{T }\OtherTok{\textless{}{-}} \DecValTok{25}
@@ -766,13 +732,7 @@ else where. This however does not appear to be generalizable.
           \AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\StringTok{"FE(1)"}\NormalTok{, }\StringTok{"FE(2)"}\NormalTok{, }\StringTok{"FE(3)"}\NormalTok{, }\StringTok{"FD(1)"}\NormalTok{, }\StringTok{"FD(2)"}\NormalTok{, }\StringTok{"FD(3)"}\NormalTok{,}\StringTok{"HK(1)"}
 \NormalTok{                     , }\StringTok{"HK(2)"}\NormalTok{,  }\StringTok{"HK(3)"}\NormalTok{, }\StringTok{"JK(1)"}\NormalTok{, }\StringTok{"JK(2)"}\NormalTok{,}\StringTok{"JK(3)"}\NormalTok{),}
           \AttributeTok{ncol =} \DecValTok{3}\NormalTok{, }\AttributeTok{nrow =} \DecValTok{4}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
-\includegraphics{q1-4_files/figure-latex/unnamed-chunk-5-2.pdf}
-
-\begin{Shaded}
-\begin{Highlighting}[]
 \CommentTok{\# create table for bias and rmse T=25}
 \NormalTok{bias25 }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(bias\_fe,bias\_fd,bias\_hk,bias\_jk)}
 \NormalTok{rmse25 }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(rmse\_fe,rmse\_fd,rmse\_hk,rmse\_jk)}
@@ -782,30 +742,6 @@ else where. This however does not appear to be generalizable.
 \FunctionTok{stargazer}\NormalTok{(output25,}\AttributeTok{title=}\StringTok{"Q1 T=25"}\NormalTok{,}\AttributeTok{align=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{digits=}\DecValTok{3}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
-
-\begin{verbatim}
-## 
-## % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-## % Date and time: Thu, May 12, 2022 - 9:50:36 PM
-## % Requires LaTeX packages: dcolumn 
-## \begin{table}[!htbp] \centering 
-##   \caption{Q1 T=25} 
-##   \label{} 
-## \begin{tabular}{@{\extracolsep{5pt}} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
-## \\[-1.8ex]\hline 
-## \hline \\[-1.8ex] 
-## \multicolumn{1}{c}{} & \multicolumn{1}{c}{Fixed-Effects} & \multicolumn{1}{c}{First-Difference} & \multicolumn{1}{c}{Hahn-Kuersteiner} & \multicolumn{1}{c}{Jackknife} \\ 
-## \hline \\[-1.8ex] 
-## \multicolumn{1}{c}{Bias\_rho=0} & -0.041 & 0.0002 & -0.002 & -0.001 \\ 
-## \multicolumn{1}{c}{Bias\_rho=0.5} & -0.062 & 0.002 & -0.004 & 0.229 \\ 
-## \multicolumn{1}{c}{Bias\_rho=0.95} & -0.045 & 0.003 & 0.031 & 0.048 \\ 
-## \multicolumn{1}{c}{RMSE\_rho=0} & 0.045 & 0.031 & 0.021 & 0.045 \\ 
-## \multicolumn{1}{c}{RMSE\_rho=0.5} & 0.064 & 0.040 & 0.020 & 0.230 \\ 
-## \multicolumn{1}{c}{RMSE\_rho=0.95} & 0.046 & 0.086 & 0.032 & 0.049 \\ 
-## \hline \\[-1.8ex] 
-## \end{tabular} 
-## \end{table}
-\end{verbatim}
 
 \newpage
 
@@ -823,8 +759,9 @@ the non-observable year-level macroeconomics factors influencing both
 outcome and the implication of policy), implication of policy is
 independent on the error term.
 
-Implication: the implication of contract exceptions increases THS
-employment by \(12.8\%\), while this is not statistically significant.
+Implication: the policy increases THS employment by \(12.8\%\), while
+this is not statistically significant - essentially, the policy has no
+causal effect.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -856,8 +793,8 @@ outcome and the implication of policy) and \emph{state-level time
 trends} (states can have their own linear time trends over the years),
 implication of policy is independent on the error term.
 
-Implication: the implication of contract exceptions increases THS
-employement by \(14.5\%\), which is statistically significant.
+Implication: the policy increases THS employement by \(14.5\%\), which
+is statistically significant.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -877,6 +814,20 @@ employement by \(14.5\%\), which is statistically significant.
 \hypertarget{c-2}{%
 \subsubsection{(c)}\label{c-2}}
 
+Assumption: 1) After controlling for \emph{state fixed effect} (all the
+non-observable state-level factors influencing both outcome and the
+implication of policy, and don't change over time), \emph{year fixed
+effect} (all the non-observable year-level macroeconomics factors
+influencing both outcome and the implication of policy), \emph{lnemp} is
+not correlated with other omitted variables and only influences the
+outcome through implication of the policy. 2) \emph{lnemp} is correlated
+with implication of the policy. 3) The labor market law cannot have a
+direct effect until it is passed.
+
+Implication: the policy decreases THS employment by \(10.18\%\), while
+this is not statistically significant - essentially, the policy has no
+causal effect.
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{c }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(lnths }\SpecialCharTok{\textasciitilde{}} \DecValTok{1} \SpecialCharTok{|}\NormalTok{ s }\SpecialCharTok{+}\NormalTok{ t }\SpecialCharTok{|}\NormalTok{ mico }\SpecialCharTok{\textasciitilde{}}\NormalTok{ lnemp, }\AttributeTok{cluster =} \StringTok{\textquotesingle{}s\textquotesingle{}}\NormalTok{, df)}
@@ -895,18 +846,46 @@ employement by \(14.5\%\), which is statistically significant.
 \hypertarget{d-2}{%
 \subsubsection{(d)}\label{d-2}}
 
+The results for model \emph{a} and \emph{b} are quite similar: lead
+terms are close to zero and not significant, which validates the
+assumptions behind them, since there's no pre-trend, or anticipatory
+response.
+
+According to the contemporaneous and lag terms, the treatment effect is
+stronger in first two years (especially in the second year), and
+relatively weaker after the third year. Need to mention, even though the
+magtitude of coefficients make sence, they are not statistically
+significant.
+
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{panel}\NormalTok{(df, }\AttributeTok{panel.id =} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}s\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}t\textquotesingle{}}\NormalTok{))}
+\NormalTok{df\_d }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{group\_by}\NormalTok{(s) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{first.treat =} \FunctionTok{min}\NormalTok{(}
+    \FunctionTok{if\_else}\NormalTok{(mico}\SpecialCharTok{==}\DecValTok{1}\NormalTok{, t, }\ConstantTok{NA\_integer\_}\NormalTok{),}
+    \AttributeTok{na.rm =} \ConstantTok{TRUE}
+\NormalTok{  )) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{ungroup}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{lead1 =} \FunctionTok{ifelse}\NormalTok{(t }\SpecialCharTok{==}\NormalTok{ first.treat }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{),}
+    \AttributeTok{lead2 =} \FunctionTok{ifelse}\NormalTok{(t }\SpecialCharTok{==}\NormalTok{ first.treat }\SpecialCharTok{{-}} \DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{),}
+    \AttributeTok{lead3 =} \FunctionTok{ifelse}\NormalTok{(t }\SpecialCharTok{==}\NormalTok{ first.treat }\SpecialCharTok{{-}} \DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{),}
+    \AttributeTok{lead4 =} \FunctionTok{ifelse}\NormalTok{(t }\SpecialCharTok{==}\NormalTok{ first.treat }\SpecialCharTok{{-}} \DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{),}
+    \AttributeTok{contempt =} \FunctionTok{ifelse}\NormalTok{(t }\SpecialCharTok{==}\NormalTok{ first.treat, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{),}
+    \AttributeTok{lag1 =} \FunctionTok{ifelse}\NormalTok{(t }\SpecialCharTok{==}\NormalTok{ first.treat }\SpecialCharTok{+} \DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{),}
+    \AttributeTok{lag2 =} \FunctionTok{ifelse}\NormalTok{(t }\SpecialCharTok{==}\NormalTok{ first.treat }\SpecialCharTok{+} \DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{),}
+    \AttributeTok{lag3 =} \FunctionTok{ifelse}\NormalTok{(t }\SpecialCharTok{==}\NormalTok{ first.treat }\SpecialCharTok{+} \DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{),}
+    \AttributeTok{lag4 =} \FunctionTok{ifelse}\NormalTok{(t }\SpecialCharTok{\textgreater{}=}\NormalTok{ first.treat }\SpecialCharTok{+} \DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+\NormalTok{    )}
   
-\NormalTok{d\_a }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(lnths }\SpecialCharTok{\textasciitilde{}}\NormalTok{ mico }\SpecialCharTok{+}\NormalTok{ lnemp }\SpecialCharTok{+} 
-               \FunctionTok{l}\NormalTok{(mico, }\DecValTok{1}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{l}\NormalTok{(mico, }\DecValTok{2}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{l}\NormalTok{(mico, }\DecValTok{3}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{l}\NormalTok{(mico, }\DecValTok{4}\NormalTok{) }\SpecialCharTok{+}
-               \FunctionTok{f}\NormalTok{(mico, }\DecValTok{1}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{f}\NormalTok{(mico, }\DecValTok{2}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{f}\NormalTok{(mico, }\DecValTok{3}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{f}\NormalTok{(mico, }\DecValTok{4}\NormalTok{) }
-               \SpecialCharTok{|}\NormalTok{ s }\SpecialCharTok{+}\NormalTok{ t, }\AttributeTok{cluster =} \StringTok{\textquotesingle{}s\textquotesingle{}}\NormalTok{, df)}
-\NormalTok{d\_b }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(lnths }\SpecialCharTok{\textasciitilde{}}\NormalTok{ mico }\SpecialCharTok{+}\NormalTok{ lnemp }\SpecialCharTok{+} 
-               \FunctionTok{l}\NormalTok{(mico, }\DecValTok{1}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{l}\NormalTok{(mico, }\DecValTok{2}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{l}\NormalTok{(mico, }\DecValTok{3}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{l}\NormalTok{(mico, }\DecValTok{4}\NormalTok{) }\SpecialCharTok{+}
-               \FunctionTok{f}\NormalTok{(mico, }\DecValTok{1}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{f}\NormalTok{(mico, }\DecValTok{2}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{f}\NormalTok{(mico, }\DecValTok{3}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{f}\NormalTok{(mico, }\DecValTok{4}\NormalTok{) }
-               \SpecialCharTok{|}\NormalTok{ s }\SpecialCharTok{+}\NormalTok{ t }\SpecialCharTok{+}\NormalTok{ s[t], }\AttributeTok{cluster =} \StringTok{\textquotesingle{}s\textquotesingle{}}\NormalTok{, df)}
+\NormalTok{d\_a }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(lnths }\SpecialCharTok{\textasciitilde{}}\NormalTok{ contempt }\SpecialCharTok{+}\NormalTok{ lnemp }\SpecialCharTok{+} 
+\NormalTok{               lead1 }\SpecialCharTok{+}\NormalTok{ lead2 }\SpecialCharTok{+}\NormalTok{ lead3 }\SpecialCharTok{+}\NormalTok{ lead4 }\SpecialCharTok{+} 
+\NormalTok{               lag1 }\SpecialCharTok{+}\NormalTok{ lag2 }\SpecialCharTok{+}\NormalTok{ lag3 }\SpecialCharTok{+}\NormalTok{ lag4 }
+               \SpecialCharTok{|}\NormalTok{ s }\SpecialCharTok{+}\NormalTok{ t, }\AttributeTok{cluster =} \StringTok{\textquotesingle{}s\textquotesingle{}}\NormalTok{, df\_d)}
+\NormalTok{d\_b }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(lnths }\SpecialCharTok{\textasciitilde{}}\NormalTok{ contempt }\SpecialCharTok{+}\NormalTok{ lnemp }\SpecialCharTok{+} 
+\NormalTok{               lead1 }\SpecialCharTok{+}\NormalTok{ lead2 }\SpecialCharTok{+}\NormalTok{ lead3 }\SpecialCharTok{+}\NormalTok{ lead4 }\SpecialCharTok{+} 
+\NormalTok{               lag1 }\SpecialCharTok{+}\NormalTok{ lag2 }\SpecialCharTok{+}\NormalTok{ lag3 }\SpecialCharTok{+}\NormalTok{ lag4 }
+               \SpecialCharTok{|}\NormalTok{ s }\SpecialCharTok{+}\NormalTok{ t }\SpecialCharTok{+}\NormalTok{ s[t], }\AttributeTok{cluster =} \StringTok{\textquotesingle{}s\textquotesingle{}}\NormalTok{, df\_d)}
 \NormalTok{out }\OtherTok{\textless{}{-}} \FunctionTok{etable}\NormalTok{(d\_a, d\_b, }\AttributeTok{tex =} \ConstantTok{TRUE}\NormalTok{) }
 \end{Highlighting}
 \end{Shaded}
@@ -917,6 +896,30 @@ employement by \(14.5\%\), which is statistically significant.
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\begingroup\centering\begin{tabular}{lcc}   \tabularnewline \midrule \midrule   Dependent Variable: & \multicolumn{2}{c}{lnths}\\   Model:       & (1)            & (2)\\     \midrule   \emph{Variables}\\   mico         & 0.1579$^{**}$  & 0.0754\\                   & (0.0622)       & (0.0668)\\      lnemp        & 1.834$^{***}$  & 2.253$^{***}$\\                   & (0.4722)       & (0.5627)\\      l(mico,1)    & 0.0471         & 0.0341\\                   & (0.0441)       & (0.0618)\\      l(mico,2)    & 0.0461         & 0.0454\\                   & (0.0357)       & (0.0510)\\      l(mico,3)    & -0.1076$^{*}$  & -0.1114\\                   & (0.0551)       & (0.0703)\\      l(mico,4)    & 0.0439         & 0.0497\\                   & (0.0660)       & (0.0602)\\      f(mico,1)    & -0.0662        & -0.0251\\                   & (0.0455)       & (0.0788)\\      f(mico,2)    & 0.0528         & -0.0362\\                   & (0.0525)       & (0.0784)\\      f(mico,3)    & 0.1167$^{*}$   & 0.1282\\                   & (0.0691)       & (0.0867)\\      f(mico,4)    & -0.2371$^{**}$ & -0.0874\\                   & (0.1084)       & (0.1045)\\      \midrule   \emph{Fixed-effects}\\   s            & Yes            & Yes\\     t            & Yes            & Yes\\     \midrule   \emph{Varying Slopes}\\   t (s)        &                & Yes\\     \midrule   \emph{Fit statistics}\\   Observations & 450            & 450\\     R$^2$        & 0.98112        & 0.99192\\     Within R$^2$ & 0.11847        & 0.12288\\     \midrule \midrule   \multicolumn{3}{l}{\emph{Clustered (s) standard-errors in parentheses}}\\   \multicolumn{3}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\\end{tabular}\par\endgroup\end{center}
+\begin{center}\begingroup\centering\begin{tabular}{lcc}   \tabularnewline \midrule \midrule   Dependent Variable: & \multicolumn{2}{c}{lnths}\\   Model:       & (1)           & (2)\\     \midrule   \emph{Variables}\\   contempt     & 0.1578        & 0.1493\\                   & (0.1595)      & (0.1379)\\      lnemp        & 2.028$^{***}$ & 1.526$^{***}$\\                   & (0.4303)      & (0.4067)\\      lead1        & 0.0429        & 0.0093\\                   & (0.1319)      & (0.1149)\\      lead2        & 0.0479        & -0.0064\\                   & (0.1316)      & (0.1170)\\      lead3        & 0.0366        & -0.0348\\                   & (0.1290)      & (0.1134)\\      lead4        & 0.1149        & 0.0494\\                   & (0.0955)      & (0.0802)\\      lag1         & 0.1625        & 0.1616\\                   & (0.1722)      & (0.1422)\\      lag2         & 0.2285        & 0.2344\\                   & (0.1906)      & (0.1587)\\      lag3         & 0.1130        & 0.1270\\                   & (0.2017)      & (0.1688)\\      lag4         & 0.1461        & 0.2084\\                   & (0.2373)      & (0.1857)\\      \midrule   \emph{Fixed-effects}\\   s            & Yes           & Yes\\     t            & Yes           & Yes\\     \midrule   \emph{Varying Slopes}\\   t (s)        &               & Yes\\     \midrule   \emph{Fit statistics}\\   Observations & 850           & 850\\     R$^2$        & 0.97282       & 0.98868\\     Within R$^2$ & 0.14253       & 0.09646\\     \midrule \midrule   \multicolumn{3}{l}{\emph{Clustered (s) standard-errors in parentheses}}\\   \multicolumn{3}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\\end{tabular}\par\endgroup\end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{coefplot}\NormalTok{(d\_a, }\AttributeTok{drop =} \StringTok{\textquotesingle{}lnemp\textquotesingle{}}\NormalTok{,}
+         \AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\StringTok{"lead4"}\NormalTok{, }\StringTok{"lead3"}\NormalTok{, }\StringTok{"lead2"}\NormalTok{, }\StringTok{"lead1"}\NormalTok{, }\StringTok{\textquotesingle{}contempt\textquotesingle{}}\NormalTok{,}
+                   \StringTok{"lag1"}\NormalTok{, }\StringTok{"lag2"}\NormalTok{, }\StringTok{"lag3"}\NormalTok{, }\StringTok{"lag4"}\NormalTok{),}
+         \AttributeTok{main =} \StringTok{"Model A"}\NormalTok{,}
+         \AttributeTok{pt.join =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{q1-4_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{coefplot}\NormalTok{(d\_b, }\AttributeTok{drop =} \StringTok{\textquotesingle{}lnemp\textquotesingle{}}\NormalTok{,}
+         \AttributeTok{order =} \FunctionTok{c}\NormalTok{(}\StringTok{"lead4"}\NormalTok{, }\StringTok{"lead3"}\NormalTok{, }\StringTok{"lead2"}\NormalTok{, }\StringTok{"lead1"}\NormalTok{, }\StringTok{\textquotesingle{}contempt\textquotesingle{}}\NormalTok{,}
+                   \StringTok{"lag1"}\NormalTok{, }\StringTok{"lag2"}\NormalTok{, }\StringTok{"lag3"}\NormalTok{, }\StringTok{"lag4"}\NormalTok{),}
+         \AttributeTok{main =} \StringTok{"Model B"}\NormalTok{,}
+         \AttributeTok{pt.join =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{q1-4_files/figure-latex/unnamed-chunk-14-2.pdf}
 
 \end{document}
