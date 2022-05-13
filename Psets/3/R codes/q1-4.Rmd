@@ -1,0 +1,517 @@
+---
+title: "41903 Pset 3"
+author: "Andrew McKinley, Lauren Mostrom, Pietro Ramella, Francisco Ruela, and Bohan Yang"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(data.table)
+library(zoo)
+library(tidyr)
+library(ggpubr)
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(ivpack) # for IV
+library(Matrix)
+library(plm) # for panel data regressions
+library(multiwayvcov) # for calculate clustered standard errors
+library(texreg)
+library(fixest)
+library(kableExtra)
+library(ivreg)
+```
+
+## Question 1
+
+### (a)
+Adding aggregate time effects captures macro trends that affects all countries in certain periods, for example a recession that interests all countries in a given year.
+
+
+### (b)
+The country fixed effects $\alpha_i$ capture unobserved heterogeneity that is constant within country over the examined period, for example levels of natural resources, or institutional factors.
+
+### (c)
+Economic reasoning suggests a negative $\delta_1$: because higher tax rates makes investment less profitable, we would expect that a decrease in investment would follow higher marginal tax rates.
+
+### (d)
+Rewrite the model in matrix form:
+    $$Y = \theta R + \alpha D + \gamma Z + \delta_1 tax + \delta_2 disaster + u = \alpha D + \beta X + u$$
+    where $Y_{it} = log(investment_{it}),\ \beta = [\delta_1, \delta_2, \gamma', \theta'],\ X = [tax',disaster',Z',R']'$.\\
+    Because fixed effects, $\delta = [\delta_1,\delta_2]$, and an intercept cannot be jointly identified, I need to choose a normalization: set to zero the intercept and the first time fixed effect. If we are willing to assume strict exogeneity, that is $tax$ and $disaster$ are uncorrelated with $\epsilon$ at every time period, we can then estimate using OLS the coefficients $$(\hat{\beta}_{FE},\hat{\alpha})=(W'W )^{-1}(W'Y)$$ 
+    where $W=[X\ D]$.\\
+    To compute the standard errors, assuming observations are independent across countries, $\hat{V} = \hat{\sigma}^2\hat{Q}^{-1}$, where $$\hat{\sigma}^2=\frac{1}{NT}\sum_{i,t}e_{it}^2, \quad e_{it} = y_{it} - \Bar{y}_i - (x_{it} - \Bar{x}_i)'\hat{\beta}_{FE},\ k=dim(x_{it})$$
+    $$\hat{Q} = \frac{1}{NT}\sum_{i,t} (x_{it} - \Bar{x}_i)(x_{it} - \Bar{x}_i)'$$.
+
+### (e)
+It seems unlikely that we can rule out dynamics between new capital investments and changes in marginal taxes or natural disasters, yet, $tax_{it}$ may still violate strict exogeneity because the taxing authority may choose $tax_{it}$ in response of low/excessive levels of observed investment, therefore $E[x_{it},u{it-j}]\ne0$ for some $j=1,..$. There are not real issues with natural disasters if we rule out persistent effects, and therefore dynamics. 
+
+
+\newpage
+## Question 2
+
+### (a)
+```{r}
+#setwd("C:/Users/17036/OneDrive/Documents/GitHub/metrics3-zombie-boards/Psets/3")
+murder <- read.delim("PS3Data/MURDER_RAW.txt", header=FALSE)
+
+colnames(murder) <- c('id','state','year','mrdrte','exec','unem','d90','d93',      
+                      'cmrdrte','cexec','cunem','cexec1','cunem1')
+
+# Use only data for 1990 and 1993
+data <- murder %>%
+  filter(year==90 | year==93)
+
+reg_pooled <- lm(mrdrte~d93+exec+unem, data=data)
+### calculate standard errors 
+# standard homoskedastic standard errors
+se.homo_pooled <- sqrt(diag(vcov(reg_pooled))) 
+# robust standard errors
+HCV.coef_pooled <- vcovHC(reg_pooled, type = 'HC1')
+se.robust_pooled <- sqrt(diag(HCV.coef_pooled)) 
+# clustered standard errors
+CLCV.coef_pooled <- cluster.vcov(reg_pooled,data$state)
+se.cluster_pooled <- sqrt(diag(CLCV.coef_pooled))
+```
+
+In the table below we report the IID standard errors, heteroskedasticity-robust standard errors, and clustered standard errors. Robust SEs were calculated as follows:
+
+$$
+\hat{\Omega} = \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1} \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}' \hat{\epsilon}_{it}^2 \right) \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1}
+$$
+
+Where $\hat{\epsilon}$ is the POLS residual. We also include clustered standard errors; however, if we suspect the observations are serially correlated (as would be implied by the use of clustered SEs) we should not be using POLS anyway. Nevertheless, clustered SEs were calculated as follows:
+
+$$
+\hat{\Omega} = \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1} \left( \frac{1}{NT} \sum_{i,t}  x_{it} x_{i,90}' \hat{\epsilon}_{it} \hat{\epsilon}_{i,90} + x_{it} x_{i,93}' \hat{\epsilon}_{it} \hat{\epsilon}_{i,93} \right) \left( \frac{1}{NT} \sum_{i,t} x_{it} x_{it}'\right)^{-1}
+$$
+
+\newpage
+
+```{r, results='asis'}
+texreg(list(reg_pooled, reg_pooled, reg_pooled), digits=4, caption.above=TRUE,
+       override.se = list(se.homo_pooled, se.robust_pooled, se.cluster_pooled),
+       custom.model.names=c("IID", "Robust", "Clustered"),
+       caption = "Pooled OLS")
+```
+
+
+### (b)
+In this setting FE and FD are numerically identical because there are only two time periods, 1990 and 1993. To see this, recall the fixed effect model:
+
+\begin{align*}
+  y_{i1} - \bar{y}_i &= (x_{i1} - \bar{x}_i)' \beta + \epsilon_{i1} - \bar{\epsilon}_i \\
+  y_{i1} - \left( \frac{y_{i1}+y_{i0}}{2} \right) &= \left( x_{i1} - \frac{x_{i1}+x_{i0}}{2} \right)' \beta + \epsilon_{i1} - \left( \frac{\epsilon_{i1}+\epsilon_{i0}}{2} \right) \\
+  \frac{y_{i1} - y_{i0}}{2} &= \left( \frac{x_{i1} - x_{i0}}{2} \right)' \beta + \frac{\epsilon_{i1} - \epsilon_{i0}}{2} \\
+  y_{i1} - y_{i0} &= (x_{i1} - x_{i0})' \beta + \epsilon_{i1} - \epsilon_{i0}
+\end{align*}
+
+Which is exactly the first differences model.
+
+In the table below we report only the results for FD. We chose FD because it reduces the procedure down to a cross-sectional dataset and only requires heterskedasticity-robust standard errors, rather than maintaining the panel data structure and requiring clustered standard errors. Clustered standard errors are reported in the table below, but only to illustrate that they are identical to robust in the first differences method when we only have two periods.
+
+
+There does not appear to be any deterrant effect of capital punishment; based on these results we fail to reject the null hypothesis that the coefficient on $exec$ is equal to zero.
+
+
+
+
+### (c)
+*First Differences*
+```{r}
+data_90 <- data %>%
+  filter(year==90)
+data_93 <- data %>%
+  filter(year==93)
+data_fd <- left_join(data_90,data_93,by=c("id"))
+data_fd$delta_mrdrte <- data_fd$mrdrte.y-data_fd$mrdrte.x
+data_fd$delta_exec <- data_fd$exec.y-data_fd$exec.x
+data_fd$delta_unem <- data_fd$unem.y-data_fd$unem.x
+reg_fd <- lm(delta_mrdrte~delta_exec+delta_unem, data=data_fd)
+### calculate standard errors 
+# standard homoskedastic standard errors
+se.homo_fd <- sqrt(diag(vcov(reg_fd))) 
+# robust standard errors
+HCV.coef_fd <- vcovHC(reg_fd, type = 'HC1')
+se.robust_fd <- sqrt(diag(HCV.coef_fd)) 
+# clustered standard errors
+CLCV.coef_fd <- cluster.vcov(reg_fd,data_fd$state.x)
+se.cluster_fd <- sqrt(diag(CLCV.coef_fd))
+```
+\newpage
+```{r, results='asis'}
+texreg(list(reg_fd, reg_fd, reg_fd), digits=4, caption.above=TRUE,
+       override.se = list(se.homo_fd,se.robust_fd,se.cluster_fd),
+       custom.model.names=c("IID", "Robust", "Clustered"),
+       caption = "First Differences")
+```
+
+
+As explained above, we used heteroskedasticity-robust SEs because the assumptions required for IID standard errors are too strong, and in a first differences model with only two periods, clustered and robust SEs are identical (as demonstrated in the table above).
+
+From these results the coefficient on $exec$ is negative and statistically significant, so it does appear that there is a deterrant effect of capital punishment.
+
+
+### (d)
+FD is preferred in this context because POLS requires the assumption that there is no serial correlation between observations. This is an unrealistic assumption in this setting because there could be many persistent features of states that are correlated both with executions and with the murder rate.
+
+
+
+\newpage
+## Question 3
+
+\textit{Compute the bias and root-mean-squared-error of each estimator. Form a histogram for each estimator. Do the histograms appear to be approximately normal centered over the true parameter value? Comment on what you think you learn that is generalizable from
+this exercise.}
+
+First, we include the tables of the bias and RMSE for the instance where T = 6.
+
+```{=Latex}
+\begin{table}[!htbp] \centering 
+  \caption{T=6} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+\multicolumn{1}{c}{} & \multicolumn{1}{c}{Fixed-Effects} & \multicolumn{1}{c}{First-Difference} & \multicolumn{1}{c}{Hahn-Kuersteiner} & \multicolumn{1}{c}{Jackknife} \\ 
+\hline \\[-1.8ex] 
+\multicolumn{1}{c}{Bias\_rho=  0} & -0.164 & 0.006 & -0.025 & 0.006 \\ 
+\multicolumn{1}{c}{Bias\_rho = 0.5} & -0.260 & 0.007 & -0.054 & 0.148 \\ 
+\multicolumn{1}{c}{Bias\_rho = 0.95} & -0.262 & 0.023 & 0.020 & 0.026 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0} & 0.168 & 0.078 & 0.051 & 0.089 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0.5} & 0.264 & 0.132 & 0.073 & 0.162 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0.95} & 0.264 & 0.239 & 0.049 & 0.043 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table}
+```
+
+!(PS3-Q3/T6 Plots.png)
+
+Next, we include the same for the case where T = 25.
+
+```{=Latex}
+\begin{table}[!htbp] \centering 
+  \caption{T=25} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+\multicolumn{1}{c}{} & \multicolumn{1}{c}{Fixed-Effects} & \multicolumn{1}{c}{First-Difference} & \multicolumn{1}{c}{Hahn-Kuersteiner} & \multicolumn{1}{c}{Jackknife} \\ 
+\hline \\[-1.8ex] 
+\multicolumn{1}{c}{Bias\_rho = 0} & -0.040 & -0.0001 & -0.002 & -0.0004 \\ 
+\multicolumn{1}{c}{Bias\_rho = 0.5} & -0.062 & 0.003 & -0.004 & 0.230 \\ 
+\multicolumn{1}{c}{Bias\_rho = 0.95} & -0.045 & 0.003 & 0.031 & 0.049 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0} & 0.045 & 0.031 & 0.021 & 0.046 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0.5} & 0.064 & 0.040 & 0.020 & 0.231 \\ 
+\multicolumn{1}{c}{RMSE\_rho = 0.95} & 0.046 & 0.068 & 0.032 & 0.049 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table}
+```
+
+!(PS3-Q3/T25.png)
+
+
+We note that the distributions do appear to be approximately centered over the true value in a few cases, notably those that are not the fixed effects estimator which appears to have a wider spread and weaker identification. However, some are still a bit off to either direction. We can also see, as we learned in class, that as $\frac{N}{T}$ gets smaller that our inferences are better. In this case when T = 25. 
+
+It also appears that the First Difference IV estimator works better for lower values of $\rho$. This makes sense as the first instrument becomes weaker as $\rho$ increases. Turning to the bias corrected estimates, it is clear that both out perform the fixed effects estimator. We note, however, that the distribution for the Hahn-Kuersteiner estimator does appear to have wider tails than the Jackknife estimator. This could be caused by the fact that it corrects only for the first order bias. We also note that for T=25 and $\rho=0.5$ our Jackknife estimator appears to be off, while it is fine else where. This however does not appear to be generalizable. 
+
+```{r, eval = FALSE}
+#Simulation Parameters
+set.seed(12345)
+N <- 100
+T <- 6
+M <- 1000
+y <- matrix(NA, N,T+1)
+u <- matrix(NA, N,T)
+p <- matrix(c(0,0.5,0.95))
+p_j <- matrix(NA,N,5)
+
+
+p_fe <- matrix(NA,M,3)
+colnames(p_fe) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+p_fd <- matrix(NA,M,3)
+colnames(p_fd) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+p_hk <- matrix(NA,M,3)
+colnames(p_hk) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+sump_jk <- matrix(NA, M, 3)
+colnames(sump_jk) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+p_jk <- matrix(NA,M,3)
+colnames(p_jk) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+
+bias_fe <- matrix(0,3,1)
+bias_fd <- matrix(0,3,1)
+bias_hk <- matrix(0,3,1)
+bias_jk <- matrix(0,3,1)
+
+rmse_fe <- matrix(0,3,1)
+rmse_fd <- matrix(0,3,1)
+rmse_hk <- matrix(0,3,1)
+rmse_jk <- matrix(0,3,1)
+
+#Simulation
+for (l in 1:3) {
+  for (j in 1:M){
+    
+    #initialize variables
+    u <- matrix(NA, N, T)
+    alpha <- rnorm(N, mean = 0, sd = 1)
+    y[ ,1] <- rnorm(N, mean = alpha/(1-p[l]), sd = 1/(1-p[l]^2))
+    for (i in 1:T) {
+      u[ ,i] <- rnorm(N, mean = 0, sd = 1)
+    }
+    
+    #create y matrix
+    for (i in 1:T){
+      y[ ,i+1] = p[l]*y[ ,i] + alpha + u[ , i]
+    }
+    
+    #create dependent and independent variable
+    yy <- y[,2:(T+1)]
+    ylag <- y[,1:T]
+    
+    #demean
+    demean_y <- yy-rowMeans(yy)
+    demean_lag <- ylag-rowMeans(ylag)
+    #Estimation, time for bidness
+    
+    #fixed effects estimator
+    Y_fe <- t(matrix(demean_y, nrow = 1))
+    lag_fe <- t(matrix(demean_lag, nrow = 1))
+    fe <- lm(Y_fe ~ lag_fe)
+    p_fe[j,l] <- fe$coefficients[2]
+    
+    #first-differences estimator w/ IV
+    y_fd <- matrix(NA,N,T-2)
+    lag_fd <- matrix(NA,N,T-2)
+    inst <- matrix(NA,N,T-2)
+    for (k in 1:(T-2)) {
+      y_fd[ ,k] <- y[ ,k+2] - y[ ,k+1]
+      lag_fd[ ,k] <- y[ ,k+1] - y[ ,k]
+      inst[ ,k] <- y[ ,k]
+    }
+    Y_fd <- t(matrix(y_fd, nrow = 1))
+    Lagged_fd <- t(matrix(lag_fd, nrow = 1))
+    Instrument <- t(matrix(inst, nrow = 1))
+    fd <- ivreg(Y_fd ~ Lagged_fd|Instrument)
+    p_fd[j,l] <- fd$coefficients[2] 
+    
+    #Hahn-Kuersteiner
+    p_hk[j,l] <- (1+1/T)*p_fe[j,l]+1/T
+    
+    #jackknife
+    x <- matrix(0, T, 3)
+    b <- matrix(0, M, 3)
+    for (u in 1:T) {
+      #t-1 matrix
+      t <- y[,-u]
+      #estimation
+      yj <- t[,2:(T)]
+      yjlag <- t[,1:(T-1)]
+      demean_yj <- yj-rowMeans(yj)
+      demean_lagj <- yjlag-rowMeans(yjlag)
+      Yj_fe <- t(matrix(demean_yj, nrow = 1))
+      lagj_fe <- t(matrix(demean_lagj, nrow = 1))
+      fej <- lm(Yj_fe ~ lagj_fe)
+      z <- fej$coefficients[2]
+      x[u,l] <- z
+    }
+    #sum of rho-t values
+    b <- colSums(x)
+    b <- matrix(b, nrow = 1, ncol = 3)
+    #estimate bias corrected rho
+    p_jk[j,l] <- (T*p_fe[j,l])-((T-1)/T)*(b[,l])
+  }
+  #compute bias
+  bias_fe[l] <- mean(p_fe[ ,l])-p[l]
+  bias_fd[l] <- mean(p_fd[ ,l])-p[l]
+  bias_hk[l] <- mean(p_hk[ ,l])-p[l]
+  bias_jk[l] <- mean(p_jk[ ,l])-p[l]
+  #compute root-MSE
+  rmse_fe[l] <- sqrt(mean((p_fe[,l]-p[l])^2))
+  rmse_fd[l] <- sqrt(mean((p_fd[,l]-p[l])^2))
+  rmse_hk[l] <- sqrt(mean((p_hk[,l]-p[l])^2))
+  rmse_jk[l] <- sqrt(mean((p_jk[,l]-p[l])^2))
+}
+
+hist1_fe <- qplot(p_fe[,1],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist2_fe <- qplot(p_fe[,2],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist3_fe <- qplot(p_fe[,3],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+
+hist1_fd <- qplot(p_fd[,1],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist2_fd <- qplot(p_fd[,2],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist3_fd <- qplot(p_fd[,3],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+
+hist1_hk <- qplot(p_hk[,1],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist2_hk <- qplot(p_hk[,2],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist3_hk <- qplot(p_hk[,3],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+
+hist1_jk <- qplot(p_jk[,1],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist2_jk <- qplot(p_jk[,2],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist3_jk <- qplot(p_jk[,3],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+
+ggarrange(hist1_fe, hist2_fe, hist3_fe, hist1_fd, hist2_fd, hist3_fd,hist1_hk, 
+          hist2_hk, hist3_hk, hist1_jk, hist2_jk, hist3_jk,
+          labels = c("FE(1)", "FE(2)", "FE(3)", "FD(1)", "FD(2)", "FD(3)","HK(1)"
+                     , "HK(2)",  "HK(3)", "JK(1)", "JK(2)","JK(3)"),
+          ncol = 3, nrow = 4)
+
+# create table for bias and rmse T=6
+bias6 <- cbind(bias_fe,bias_fd,bias_hk,bias_jk)
+rmse6 <- cbind(rmse_fe,rmse_fd,rmse_hk,rmse_jk)
+output6 <- rbind(bias6,rmse6)
+colnames(output6) <- c("Fixed-Effects","First-Difference","Hahn-Kuersteiner","Jackknife")
+rownames(output6) <- c("Bias_rho=0","Bias_rho=0.5","Bias_rho=0.95","RMSE_rho=0","RMSE_rho=0.5","RMSE_rho=0.95")
+stargazer(output6,title="Q1 T=6",align=TRUE,digits=3)
+
+#Simulation Parameters for T = 25
+N <- 100
+T <- 25
+M <- 1000
+y <- matrix(NA, N,T+1)
+u <- matrix(NA, N,T)
+p <- matrix(c(0,0.5,0.95))
+
+p_fe <- matrix(NA,M,3)
+colnames(p_fe) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+p_fd <- matrix(NA,M,3)
+colnames(p_fd) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+p_hk <- matrix(NA,M,3)
+colnames(p_hk) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+sump_jk <- matrix(NA, M, 3)
+colnames(sump_jk) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+p_jk <- matrix(NA,M,3)
+colnames(p_jk) <- c('p = 0.0', 'p = 0.5', 'p = 0.95')
+
+bias_fe <- matrix(0,3,1)
+bias_fd <- matrix(0,3,1)
+bias_hk <- matrix(0,3,1)
+bias_jk <- matrix(0,3,1)
+
+rmse_fe <- matrix(0,3,1)
+rmse_fd <- matrix(0,3,1)
+rmse_hk <- matrix(0,3,1)
+rmse_jk <- matrix(0,3,1)
+
+#Simulation for T = 25
+for (l in 1:3) {
+  for (j in 1:M){
+    
+    #initialize variables
+    u <- matrix(NA, N, T)
+    alpha <- rnorm(N, mean = 0, sd = 1)
+    y[ ,1] <- rnorm(N, mean = alpha/(1-p[l]), sd = 1/(1-p[l]^2))
+    for (i in 1:T) {
+      u[ ,i] <- rnorm(N, mean = 0, sd = 1)
+    }
+    
+    #create y matrix
+    for (i in 1:T){
+      y[ ,i+1] = p[l]*y[ ,i] + alpha + u[ , i]
+    }
+    
+    #create dependent and independent variable
+    yy <- y[,2:(T+1)]
+    ylag <- y[,1:T]
+    
+    #demean
+    demean_y <- yy-rowMeans(yy)
+    demean_lag <- ylag-rowMeans(ylag)
+    #Estimation, time for bidness
+    
+    #fixed effects estimator
+    Y_fe <- t(matrix(demean_y, nrow = 1))
+    lag_fe <- t(matrix(demean_lag, nrow = 1))
+    fe <- lm(Y_fe ~ lag_fe)
+    p_fe[j,l] <- fe$coefficients[2]
+    
+    #first-differences estimator w/ IV
+    y_fd <- matrix(,N,T-2)
+    lag_fd <- matrix(,N,T-2)
+    inst <- matrix(,N,T-2)
+    for (k in 1:(T-2)) {
+      y_fd[ ,k] <- y[ ,k+2] - y[ ,k+1]
+      lag_fd[ ,k] <- y[ ,k+1] - y[ ,k]
+      inst[ ,k] <- y[ ,k]
+    }
+    Y_fd <- t(matrix(y_fd, nrow = 1))
+    Lagged_fd <- t(matrix(lag_fd, nrow = 1))
+    Instrument <- t(matrix(inst, nrow = 1))
+    fd <- ivreg(Y_fd ~ Lagged_fd|Instrument)
+    p_fd[j,l] <- fd$coefficients[2] 
+    
+    #Hahn-Kuersteiner
+    p_hk[j,l] <- (1+1/T)*p_fe[j,l]+1/T
+    
+    #jackknife
+    x <- matrix(0, T, 3)
+    b <- matrix(0, M, 3)
+    for (u in 1:T) {
+      #t-1 matrix
+      t <- y[,-u]
+      #estimation
+      yj <- t[,2:(T)]
+      yjlag <- t[,1:(T-1)]
+      demean_yj <- yj-rowMeans(yj)
+      demean_lagj <- yjlag-rowMeans(yjlag)
+      Yj_fe <- t(matrix(demean_yj, nrow = 1))
+      lagj_fe <- t(matrix(demean_lagj, nrow = 1))
+      fej <- lm(Yj_fe ~ lagj_fe)
+      z <- fej$coefficients[2]
+      x[u,l] <- z
+    }
+    #sum of rho-t values
+    b <- colSums(x)
+    b <- matrix(b, nrow = 1, ncol = 3)
+    #estimate bias corrected rho
+    p_jk[j,l] <- (T*p_fe[j,l])-((T-1)/T)*(b[,l])
+  }
+  #compute bias
+  bias_fe[l] <- mean(p_fe[ ,l])-p[l]
+  bias_fd[l] <- mean(p_fd[ ,l])-p[l]
+  bias_hk[l] <- mean(p_hk[ ,l])-p[l]
+  bias_jk[l] <- mean(p_jk[ ,l])-p[l]
+  #compute root-MSE
+  rmse_fe[l] <- sqrt(mean((p_fe[,l]-p[l])^2))
+  rmse_fd[l] <- sqrt(mean((p_fd[,l]-p[l])^2))
+  rmse_hk[l] <- sqrt(mean((p_hk[,l]-p[l])^2))
+  rmse_jk[l] <- sqrt(mean((p_jk[,l]-p[l])^2))
+}
+
+hist1_fe <- qplot(p_fe[,1],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist2_fe <- qplot(p_fe[,2],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist3_fe <- qplot(p_fe[,3],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+
+hist1_fd <- qplot(p_fd[,1],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist2_fd <- qplot(p_fd[,2],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist3_fd <- qplot(p_fd[,3],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+
+hist1_hk <- qplot(p_hk[,1],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist2_hk <- qplot(p_hk[,2],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist3_hk <- qplot(p_hk[,3],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+
+hist1_jk <- qplot(p_jk[,1],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist2_jk <- qplot(p_jk[,2],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+hist3_jk <- qplot(p_jk[,3],geom="histogram",xlab="rho estimate",ylab="frequency",fill=I("midnightblue"),col=I("white")) 
+
+ggarrange(hist1_fe, hist2_fe, hist3_fe, hist1_fd, hist2_fd, hist3_fd,hist1_hk, 
+          hist2_hk, hist3_hk, hist1_jk, hist2_jk, hist3_jk,
+          labels = c("FE(1)", "FE(2)", "FE(3)", "FD(1)", "FD(2)", "FD(3)","HK(1)"
+                     , "HK(2)",  "HK(3)", "JK(1)", "JK(2)","JK(3)"),
+          ncol = 3, nrow = 4)
+
+# create table for bias and rmse T=25
+bias25 <- cbind(bias_fe,bias_fd,bias_hk,bias_jk)
+rmse25 <- cbind(rmse_fe,rmse_fd,rmse_hk,rmse_jk)
+output25 <- rbind(bias25,rmse25)
+colnames(output25) <- c("Fixed-Effects","First-Difference","Hahn-Kuersteiner","Jackknife")
+rownames(output25) <- c("Bias_rho=0","Bias_rho=0.5","Bias_rho=0.95","RMSE_rho=0","RMSE_rho=0.5","RMSE_rho=0.95")
+stargazer(output25,title="Q1 T=25",align=TRUE,digits=3)
+```
+
