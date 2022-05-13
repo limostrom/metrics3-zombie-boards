@@ -27,10 +27,7 @@ library(fixest)
 library(kableExtra)
 ```
 
-## Question 1
 
-
-\newpage
 ## Question 2
 
 ### (a)
@@ -141,19 +138,13 @@ FD is preferred in this context because POLS requires the assumption that there 
 
 
 \newpage
-## Question 3
-
-
-
-
-\newpage
 ## Question 4
 
 ### (a)
 
 Assumption: after controlling for *Log of state nonfarm employment*, *state fixed effect* (all the non-observable state-level factors influencing both outcome and the implication of policy, and don't change over time) and *year fixed effect* (all the non-observable year-level macroeconomics factors influencing both outcome and the implication of policy), implication of policy is independent on the error term.
 
-Implication: the implication of contract exceptions increases THS employment by $12.8\%$, while this is not statistically significant.
+Implication: the policy increases THS employment by $12.8\%$, while this is not statistically significant - essentially, the policy has no causal effect.
 ```{r, results='hide'}
 df <- read.table("PS3Data/autor_out2.txt", header = TRUE, 
                  quote="\"", comment.char="")
@@ -170,7 +161,7 @@ knitr::asis_output(c("\\begin{center}", out, "\\end{center}"))
 ### (b)
 Assumption: after controlling for *Log of state nonfarm employment*, *state fixed effect* (all the non-observable state-level factors influencing both outcome and the implication of policy, and don't change over time), *year fixed effect* (all the non-observable year-level macroeconomics factors influencing both outcome and the implication of policy) and *state-level time trends* (states can have their own linear time trends over the years), implication of policy is independent on the error term.
 
-Implication: the implication of contract exceptions increases THS employement by $14.5\%$, which is statistically significant.
+Implication: the policy increases THS employement by $14.5\%$, which is statistically significant.
 ```{r, results='hide'}
 b <- feols(lnths ~ mico + lnemp | s + t + s[t], cluster = 's', df)
 out <- etable(b, tex = TRUE) 
@@ -181,6 +172,9 @@ knitr::asis_output(c("\\begin{center}", out, "\\end{center}"))
 ```
 
 ### (c)
+Assumption: 1) After controlling for *state fixed effect* (all the non-observable state-level factors influencing both outcome and the implication of policy, and don't change over time), *year fixed effect* (all the non-observable year-level macroeconomics factors influencing both outcome and the implication of policy), *lnemp* is not correlated with other omitted variables and only influences the outcome through implication of the policy. 2) *lnemp* is correlated with implication of the policy. 3) The labor market law cannot have a direct effect until it is passed.
+
+Implication: the policy decreases THS employment by $10.18\%$, while this is not statistically significant - essentially, the policy has no causal effect.
 ```{r, results='hide'}
 c <- feols(lnths ~ 1 | s + t | mico ~ lnemp, cluster = 's', df)
 out <- etable(c, tex = TRUE) 
@@ -191,21 +185,58 @@ knitr::asis_output(c("\\begin{center}", out, "\\end{center}"))
 ```
 
 ### (d)
+The results for model *a* and *b* are quite similar: lead terms are close to zero and not significant, which validates the assumptions behind them, since there's no pre-trend, or anticipatory response.
+
+According to the contemporaneous and lag terms, the treatment effect is stronger in first two years (especially in the second year), and relatively weaker after the third year. Need to mention, even though the magtitude of coefficients make sence, they are not statistically significant.
 ```{r, results='hide'}
-df <- panel(df, panel.id = c('s', 't'))
+df_d <- df %>% 
+  group_by(s) %>% 
+  mutate(first.treat = min(
+    if_else(mico==1, t, NA_integer_),
+    na.rm = TRUE
+  )) %>% 
+  ungroup() %>%
+  mutate(
+    lead1 = ifelse(t == first.treat - 1, 1, 0),
+    lead2 = ifelse(t == first.treat - 2, 1, 0),
+    lead3 = ifelse(t == first.treat - 3, 1, 0),
+    lead4 = ifelse(t == first.treat - 4, 1, 0),
+    contempt = ifelse(t == first.treat, 1, 0),
+    lag1 = ifelse(t == first.treat + 1, 1, 0),
+    lag2 = ifelse(t == first.treat + 2, 1, 0),
+    lag3 = ifelse(t == first.treat + 3, 1, 0),
+    lag4 = ifelse(t >= first.treat + 4, 1, 0)
+    )
   
-d_a <- feols(lnths ~ mico + lnemp + 
-               l(mico, 1) + l(mico, 2) + l(mico, 3) + l(mico, 4) +
-               f(mico, 1) + f(mico, 2) + f(mico, 3) + f(mico, 4) 
-               | s + t, cluster = 's', df)
-d_b <- feols(lnths ~ mico + lnemp + 
-               l(mico, 1) + l(mico, 2) + l(mico, 3) + l(mico, 4) +
-               f(mico, 1) + f(mico, 2) + f(mico, 3) + f(mico, 4) 
-               | s + t + s[t], cluster = 's', df)
+d_a <- feols(lnths ~ contempt + lnemp + 
+               lead1 + lead2 + lead3 + lead4 + 
+               lag1 + lag2 + lag3 + lag4 
+               | s + t, cluster = 's', df_d)
+d_b <- feols(lnths ~ contempt + lnemp + 
+               lead1 + lead2 + lead3 + lead4 + 
+               lag1 + lag2 + lag3 + lag4 
+               | s + t + s[t], cluster = 's', df_d)
 out <- etable(d_a, d_b, tex = TRUE) 
 ```
 
 ```{r, include=knitr::is_latex_output()}
 knitr::asis_output(c("\\begin{center}", out, "\\end{center}")) 
 ```
+
+
+```{r}
+coefplot(d_a, drop = 'lnemp',
+         order = c("lead4", "lead3", "lead2", "lead1", 'contempt',
+                   "lag1", "lag2", "lag3", "lag4"),
+         main = "Model A",
+         pt.join = TRUE)
+coefplot(d_b, drop = 'lnemp',
+         order = c("lead4", "lead3", "lead2", "lead1", 'contempt',
+                   "lag1", "lag2", "lag3", "lag4"),
+         main = "Model B",
+         pt.join = TRUE)
+```
+
+
+
 

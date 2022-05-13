@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.25)  11 MAY 2022 23:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.25)  12 MAY 2022 19:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -632,54 +632,71 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 127
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (/usr/local/texlive/2021/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
-) [1
-
-{/usr/local/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+)
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
-40.
+35.
 (/usr/local/texlive/2021/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 
-144.
+139.
 (/usr/local/texlive/2021/texmf-dist/tex/latex/lm/ts1lmtt.fd
 File: ts1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 152.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 147.
 
 LaTeX Font Warning: Font shape `T1/lmtt/bx/it' in size <10> not available
-(Font)              Font shape `T1/lmtt/b/sl' tried instead on input line 152.
+(Font)              Font shape `T1/lmtt/b/sl' tried instead on input line 147.
 
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 168.
+(Font)              <10> on input line 163.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 168.
+(Font)              <7> on input line 163.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 168.
-[2] [3pdfTeX warning (ext4): destination with the same identifier (name{table.1
-}) has been already used, duplicate ignored
+(Font)              <5> on input line 163.
+[1
+
+{/usr/local/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2pdfTe
+X warning (ext4): destination with the same identifier (name{table.1}) has been
+ already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.273 \end{Shaded}
-                  ] [4] [5pdfTeX warning (ext4): destination with the same iden
+l.268 \end{Shaded}
+                  ] [3] [4pdfTeX warning (ext4): destination with the same iden
 tifier (name{table.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.328 \newpage
-              ] [6] [7] [8] [9] (./q2.aux)
+l.323 \newpage
+              ] [5] [6] [7]
+<q2_files/figure-latex/unnamed-chunk-13-1.pdf, id=75, 440.64626pt x 244.915pt>
+File: q2_files/figure-latex/unnamed-chunk-13-1.pdf Graphic file (type pdf)
+<use q2_files/figure-latex/unnamed-chunk-13-1.pdf>
+Package pdftex.def Info: q2_files/figure-latex/unnamed-chunk-13-1.pdf  used on 
+input line 488.
+(pdftex.def)             Requested size: 440.65862pt x 244.92184pt.
+[8]
+<q2_files/figure-latex/unnamed-chunk-13-2.pdf, id=80, 440.64626pt x 258.9675pt>
+
+File: q2_files/figure-latex/unnamed-chunk-13-2.pdf Graphic file (type pdf)
+<use q2_files/figure-latex/unnamed-chunk-13-2.pdf>
+Package pdftex.def Info: q2_files/figure-latex/unnamed-chunk-13-2.pdf  used on 
+input line 500.
+(pdftex.def)             Requested size: 440.66533pt x 258.97868pt.
+[9 <./q2_files/figure-latex/unnamed-chunk-13-1.pdf> <./q2_files/figure-latex/un
+named-chunk-13-2.pdf>] (./q2.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 14534 strings out of 478994
- 214688 string characters out of 5858183
- 573381 words of memory out of 5000000
- 31617 multiletter control sequences out of 15000+600000
- 455131 words of font info for 110 fonts, out of 8000000 for 9000
+ 14547 strings out of 478994
+ 215288 string characters out of 5858183
+ 573313 words of memory out of 5000000
+ 31623 multiletter control sequences out of 15000+600000
+ 455604 words of font info for 114 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 85i,12n,88p,1699b,391s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 85i,12n,88p,1670b,391s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/
 texlive/2021/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/20
 21/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/texlive/2021/texmf-dist/
@@ -700,10 +717,10 @@ nts/type1/public/lm/lmsy7.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/p
 ublic/lm/lmtko10.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/lm/
 lmtt10.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/lm/lmtti10.pf
 b>
-Output written on q2.pdf (9 pages, 282692 bytes).
+Output written on q2.pdf (9 pages, 295158 bytes).
 PDF statistics:
- 193 PDF objects out of 1000 (max. 8388607)
- 164 compressed objects within 2 object streams
- 36 named destinations out of 1000 (max. 500000)
- 26721 words of extra memory for PDF output out of 29859 (max. 10000000)
+ 201 PDF objects out of 1000 (max. 8388607)
+ 166 compressed objects within 2 object streams
+ 32 named destinations out of 1000 (max. 500000)
+ 26715 words of extra memory for PDF output out of 29859 (max. 10000000)
 
