@@ -406,7 +406,7 @@ T = 6.
 \end{tabular} 
 \end{table}
 
-\includegraphics[scale=0.75]{PS3-Q3/T6 Plots.png}
+!(PS3-Q3/T6 Plots.png)
 
 Next, we include the same for the case where T = 25.
 
@@ -428,7 +428,7 @@ Next, we include the same for the case where T = 25.
 \end{tabular} 
 \end{table}
 
-\includegraphics[scale=0.75]{PS3-Q3/T25.png}
+!(PS3-Q3/T25.png)
 
 We note that the distributions do appear to be approximately centered
 over the true value in a few cases, notably those that are not the fixed
@@ -447,6 +447,365 @@ Jackknife estimator. This could be caused by the fact that it corrects
 only for the first order bias. We also note that for T=25 and
 \(\rho=0.5\) our Jackknife estimator appears to be off, while it is fine
 else where. This however does not appear to be generalizable.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Simulation Parameters}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{12345}\NormalTok{)}
+\NormalTok{N }\OtherTok{\textless{}{-}} \DecValTok{100}
+\NormalTok{T }\OtherTok{\textless{}{-}} \DecValTok{6}
+\NormalTok{M }\OtherTok{\textless{}{-}} \DecValTok{1000}
+\NormalTok{y }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, N,T}\SpecialCharTok{+}\DecValTok{1}\NormalTok{)}
+\NormalTok{u }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, N,T)}
+\NormalTok{p }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\FloatTok{0.5}\NormalTok{,}\FloatTok{0.95}\NormalTok{))}
+\NormalTok{p\_j }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,N,}\DecValTok{5}\NormalTok{)}
+
+
+\NormalTok{p\_fe }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,M,}\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(p\_fe) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+\NormalTok{p\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,M,}\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(p\_fd) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+\NormalTok{p\_hk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,M,}\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(p\_hk) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+\NormalTok{sump\_jk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, M, }\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(sump\_jk) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+\NormalTok{p\_jk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,M,}\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(p\_jk) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+
+\NormalTok{bias\_fe }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{bias\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{bias\_hk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{bias\_jk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+
+\NormalTok{rmse\_fe }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{rmse\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{rmse\_hk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{rmse\_jk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+
+\CommentTok{\#Simulation}
+\ControlFlowTok{for}\NormalTok{ (l }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{) \{}
+  \ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{M)\{}
+    
+    \CommentTok{\#initialize variables}
+\NormalTok{    u }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, N, T)}
+\NormalTok{    alpha }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(N, }\AttributeTok{mean =} \DecValTok{0}\NormalTok{, }\AttributeTok{sd =} \DecValTok{1}\NormalTok{)}
+\NormalTok{    y[ ,}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(N, }\AttributeTok{mean =}\NormalTok{ alpha}\SpecialCharTok{/}\NormalTok{(}\DecValTok{1}\SpecialCharTok{{-}}\NormalTok{p[l]), }\AttributeTok{sd =} \DecValTok{1}\SpecialCharTok{/}\NormalTok{(}\DecValTok{1}\SpecialCharTok{{-}}\NormalTok{p[l]}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+    \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{T) \{}
+\NormalTok{      u[ ,i] }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(N, }\AttributeTok{mean =} \DecValTok{0}\NormalTok{, }\AttributeTok{sd =} \DecValTok{1}\NormalTok{)}
+\NormalTok{    \}}
+    
+    \CommentTok{\#create y matrix}
+    \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{T)\{}
+\NormalTok{      y[ ,i}\SpecialCharTok{+}\DecValTok{1}\NormalTok{] }\OtherTok{=}\NormalTok{ p[l]}\SpecialCharTok{*}\NormalTok{y[ ,i] }\SpecialCharTok{+}\NormalTok{ alpha }\SpecialCharTok{+}\NormalTok{ u[ , i]}
+\NormalTok{    \}}
+    
+    \CommentTok{\#create dependent and independent variable}
+\NormalTok{    yy }\OtherTok{\textless{}{-}}\NormalTok{ y[,}\DecValTok{2}\SpecialCharTok{:}\NormalTok{(T}\SpecialCharTok{+}\DecValTok{1}\NormalTok{)]}
+\NormalTok{    ylag }\OtherTok{\textless{}{-}}\NormalTok{ y[,}\DecValTok{1}\SpecialCharTok{:}\NormalTok{T]}
+    
+    \CommentTok{\#demean}
+\NormalTok{    demean\_y }\OtherTok{\textless{}{-}}\NormalTok{ yy}\SpecialCharTok{{-}}\FunctionTok{rowMeans}\NormalTok{(yy)}
+\NormalTok{    demean\_lag }\OtherTok{\textless{}{-}}\NormalTok{ ylag}\SpecialCharTok{{-}}\FunctionTok{rowMeans}\NormalTok{(ylag)}
+    \CommentTok{\#Estimation, time for bidness}
+    
+    \CommentTok{\#fixed effects estimator}
+\NormalTok{    Y\_fe }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(demean\_y, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    lag\_fe }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(demean\_lag, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    fe }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Y\_fe }\SpecialCharTok{\textasciitilde{}}\NormalTok{ lag\_fe)}
+\NormalTok{    p\_fe[j,l] }\OtherTok{\textless{}{-}}\NormalTok{ fe}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{]}
+    
+    \CommentTok{\#first{-}differences estimator w/ IV}
+\NormalTok{    y\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,N,T}\DecValTok{{-}2}\NormalTok{)}
+\NormalTok{    lag\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,N,T}\DecValTok{{-}2}\NormalTok{)}
+\NormalTok{    inst }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,N,T}\DecValTok{{-}2}\NormalTok{)}
+    \ControlFlowTok{for}\NormalTok{ (k }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{(T}\DecValTok{{-}2}\NormalTok{)) \{}
+\NormalTok{      y\_fd[ ,k] }\OtherTok{\textless{}{-}}\NormalTok{ y[ ,k}\SpecialCharTok{+}\DecValTok{2}\NormalTok{] }\SpecialCharTok{{-}}\NormalTok{ y[ ,k}\SpecialCharTok{+}\DecValTok{1}\NormalTok{]}
+\NormalTok{      lag\_fd[ ,k] }\OtherTok{\textless{}{-}}\NormalTok{ y[ ,k}\SpecialCharTok{+}\DecValTok{1}\NormalTok{] }\SpecialCharTok{{-}}\NormalTok{ y[ ,k]}
+\NormalTok{      inst[ ,k] }\OtherTok{\textless{}{-}}\NormalTok{ y[ ,k]}
+\NormalTok{    \}}
+\NormalTok{    Y\_fd }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(y\_fd, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    Lagged\_fd }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(lag\_fd, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    Instrument }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(inst, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    fd }\OtherTok{\textless{}{-}} \FunctionTok{ivreg}\NormalTok{(Y\_fd }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Lagged\_fd}\SpecialCharTok{|}\NormalTok{Instrument)}
+\NormalTok{    p\_fd[j,l] }\OtherTok{\textless{}{-}}\NormalTok{ fd}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{] }
+    
+    \CommentTok{\#Hahn{-}Kuersteiner}
+\NormalTok{    p\_hk[j,l] }\OtherTok{\textless{}{-}}\NormalTok{ (}\DecValTok{1}\SpecialCharTok{+}\DecValTok{1}\SpecialCharTok{/}\NormalTok{T)}\SpecialCharTok{*}\NormalTok{p\_fe[j,l]}\SpecialCharTok{+}\DecValTok{1}\SpecialCharTok{/}\NormalTok{T}
+    
+    \CommentTok{\#jackknife}
+\NormalTok{    x }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, T, }\DecValTok{3}\NormalTok{)}
+\NormalTok{    b }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, M, }\DecValTok{3}\NormalTok{)}
+    \ControlFlowTok{for}\NormalTok{ (u }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{T) \{}
+      \CommentTok{\#t{-}1 matrix}
+\NormalTok{      t }\OtherTok{\textless{}{-}}\NormalTok{ y[,}\SpecialCharTok{{-}}\NormalTok{u]}
+      \CommentTok{\#estimation}
+\NormalTok{      yj }\OtherTok{\textless{}{-}}\NormalTok{ t[,}\DecValTok{2}\SpecialCharTok{:}\NormalTok{(T)]}
+\NormalTok{      yjlag }\OtherTok{\textless{}{-}}\NormalTok{ t[,}\DecValTok{1}\SpecialCharTok{:}\NormalTok{(T}\DecValTok{{-}1}\NormalTok{)]}
+\NormalTok{      demean\_yj }\OtherTok{\textless{}{-}}\NormalTok{ yj}\SpecialCharTok{{-}}\FunctionTok{rowMeans}\NormalTok{(yj)}
+\NormalTok{      demean\_lagj }\OtherTok{\textless{}{-}}\NormalTok{ yjlag}\SpecialCharTok{{-}}\FunctionTok{rowMeans}\NormalTok{(yjlag)}
+\NormalTok{      Yj\_fe }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(demean\_yj, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{      lagj\_fe }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(demean\_lagj, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{      fej }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yj\_fe }\SpecialCharTok{\textasciitilde{}}\NormalTok{ lagj\_fe)}
+\NormalTok{      z }\OtherTok{\textless{}{-}}\NormalTok{ fej}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{]}
+\NormalTok{      x[u,l] }\OtherTok{\textless{}{-}}\NormalTok{ z}
+\NormalTok{    \}}
+    \CommentTok{\#sum of rho{-}t values}
+\NormalTok{    b }\OtherTok{\textless{}{-}} \FunctionTok{colSums}\NormalTok{(x)}
+\NormalTok{    b }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(b, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{, }\AttributeTok{ncol =} \DecValTok{3}\NormalTok{)}
+    \CommentTok{\#estimate bias corrected rho}
+\NormalTok{    p\_jk[j,l] }\OtherTok{\textless{}{-}}\NormalTok{ (T}\SpecialCharTok{*}\NormalTok{p\_fe[j,l])}\SpecialCharTok{{-}}\NormalTok{((T}\DecValTok{{-}1}\NormalTok{)}\SpecialCharTok{/}\NormalTok{T)}\SpecialCharTok{*}\NormalTok{(b[,l])}
+\NormalTok{  \}}
+  \CommentTok{\#compute bias}
+\NormalTok{  bias\_fe[l] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(p\_fe[ ,l])}\SpecialCharTok{{-}}\NormalTok{p[l]}
+\NormalTok{  bias\_fd[l] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(p\_fd[ ,l])}\SpecialCharTok{{-}}\NormalTok{p[l]}
+\NormalTok{  bias\_hk[l] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(p\_hk[ ,l])}\SpecialCharTok{{-}}\NormalTok{p[l]}
+\NormalTok{  bias\_jk[l] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(p\_jk[ ,l])}\SpecialCharTok{{-}}\NormalTok{p[l]}
+  \CommentTok{\#compute root{-}MSE}
+\NormalTok{  rmse\_fe[l] }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((p\_fe[,l]}\SpecialCharTok{{-}}\NormalTok{p[l])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{  rmse\_fd[l] }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((p\_fd[,l]}\SpecialCharTok{{-}}\NormalTok{p[l])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{  rmse\_hk[l] }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((p\_hk[,l]}\SpecialCharTok{{-}}\NormalTok{p[l])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{  rmse\_jk[l] }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((p\_jk[,l]}\SpecialCharTok{{-}}\NormalTok{p[l])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{\}}
+
+\NormalTok{hist1\_fe }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fe[,}\DecValTok{1}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist2\_fe }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fe[,}\DecValTok{2}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist3\_fe }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fe[,}\DecValTok{3}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+
+\NormalTok{hist1\_fd }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fd[,}\DecValTok{1}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist2\_fd }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fd[,}\DecValTok{2}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist3\_fd }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fd[,}\DecValTok{3}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+
+\NormalTok{hist1\_hk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_hk[,}\DecValTok{1}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist2\_hk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_hk[,}\DecValTok{2}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist3\_hk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_hk[,}\DecValTok{3}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+
+\NormalTok{hist1\_jk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_jk[,}\DecValTok{1}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist2\_jk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_jk[,}\DecValTok{2}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist3\_jk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_jk[,}\DecValTok{3}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+
+\FunctionTok{ggarrange}\NormalTok{(hist1\_fe, hist2\_fe, hist3\_fe, hist1\_fd, hist2\_fd, hist3\_fd,hist1\_hk, }
+\NormalTok{          hist2\_hk, hist3\_hk, hist1\_jk, hist2\_jk, hist3\_jk,}
+          \AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\StringTok{"FE(1)"}\NormalTok{, }\StringTok{"FE(2)"}\NormalTok{, }\StringTok{"FE(3)"}\NormalTok{, }\StringTok{"FD(1)"}\NormalTok{, }\StringTok{"FD(2)"}\NormalTok{, }\StringTok{"FD(3)"}\NormalTok{,}\StringTok{"HK(1)"}
+\NormalTok{                     , }\StringTok{"HK(2)"}\NormalTok{,  }\StringTok{"HK(3)"}\NormalTok{, }\StringTok{"JK(1)"}\NormalTok{, }\StringTok{"JK(2)"}\NormalTok{,}\StringTok{"JK(3)"}\NormalTok{),}
+          \AttributeTok{ncol =} \DecValTok{3}\NormalTok{, }\AttributeTok{nrow =} \DecValTok{4}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{q1-4_files/figure-latex/unnamed-chunk-5-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# create table for bias and rmse T=6}
+\NormalTok{bias6 }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(bias\_fe,bias\_fd,bias\_hk,bias\_jk)}
+\NormalTok{rmse6 }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(rmse\_fe,rmse\_fd,rmse\_hk,rmse\_jk)}
+\NormalTok{output6 }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(bias6,rmse6)}
+\FunctionTok{colnames}\NormalTok{(output6) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Fixed{-}Effects"}\NormalTok{,}\StringTok{"First{-}Difference"}\NormalTok{,}\StringTok{"Hahn{-}Kuersteiner"}\NormalTok{,}\StringTok{"Jackknife"}\NormalTok{)}
+\FunctionTok{rownames}\NormalTok{(output6) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Bias\_rho=0"}\NormalTok{,}\StringTok{"Bias\_rho=0.5"}\NormalTok{,}\StringTok{"Bias\_rho=0.95"}\NormalTok{,}\StringTok{"RMSE\_rho=0"}\NormalTok{,}\StringTok{"RMSE\_rho=0.5"}\NormalTok{,}\StringTok{"RMSE\_rho=0.95"}\NormalTok{)}
+\FunctionTok{stargazer}\NormalTok{(output6,}\AttributeTok{title=}\StringTok{"Q1 T=6"}\NormalTok{,}\AttributeTok{align=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{digits=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+## % Date and time: Thu, May 12, 2022 - 9:46:54 PM
+## % Requires LaTeX packages: dcolumn 
+## \begin{table}[!htbp] \centering 
+##   \caption{Q1 T=6} 
+##   \label{} 
+## \begin{tabular}{@{\extracolsep{5pt}} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
+## \\[-1.8ex]\hline 
+## \hline \\[-1.8ex] 
+## \multicolumn{1}{c}{} & \multicolumn{1}{c}{Fixed-Effects} & \multicolumn{1}{c}{First-Difference} & \multicolumn{1}{c}{Hahn-Kuersteiner} & \multicolumn{1}{c}{Jackknife} \\ 
+## \hline \\[-1.8ex] 
+## \multicolumn{1}{c}{Bias\_rho=0} & -0.166 & 0.003 & -0.027 & 0.003 \\ 
+## \multicolumn{1}{c}{Bias\_rho=0.5} & -0.264 & -0.004 & -0.058 & 0.143 \\ 
+## \multicolumn{1}{c}{Bias\_rho=0.95} & -0.258 & 1.582 & 0.023 & 0.026 \\ 
+## \multicolumn{1}{c}{RMSE\_rho=0} & 0.170 & 0.079 & 0.053 & 0.091 \\ 
+## \multicolumn{1}{c}{RMSE\_rho=0.5} & 0.267 & 0.138 & 0.075 & 0.158 \\ 
+## \multicolumn{1}{c}{RMSE\_rho=0.95} & 0.261 & 49.549 & 0.048 & 0.043 \\ 
+## \hline \\[-1.8ex] 
+## \end{tabular} 
+## \end{table}
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Simulation Parameters for T = 25}
+\NormalTok{N }\OtherTok{\textless{}{-}} \DecValTok{100}
+\NormalTok{T }\OtherTok{\textless{}{-}} \DecValTok{25}
+\NormalTok{M }\OtherTok{\textless{}{-}} \DecValTok{1000}
+\NormalTok{y }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, N,T}\SpecialCharTok{+}\DecValTok{1}\NormalTok{)}
+\NormalTok{u }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, N,T)}
+\NormalTok{p }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\FloatTok{0.5}\NormalTok{,}\FloatTok{0.95}\NormalTok{))}
+
+\NormalTok{p\_fe }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,M,}\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(p\_fe) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+\NormalTok{p\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,M,}\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(p\_fd) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+\NormalTok{p\_hk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,M,}\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(p\_hk) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+\NormalTok{sump\_jk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, M, }\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(sump\_jk) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+\NormalTok{p\_jk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{,M,}\DecValTok{3}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(p\_jk) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}p = 0.0\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.5\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}p = 0.95\textquotesingle{}}\NormalTok{)}
+
+\NormalTok{bias\_fe }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{bias\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{bias\_hk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{bias\_jk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+
+\NormalTok{rmse\_fe }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{rmse\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{rmse\_hk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+\NormalTok{rmse\_jk }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{)}
+
+\CommentTok{\#Simulation for T = 25}
+\ControlFlowTok{for}\NormalTok{ (l }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{) \{}
+  \ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{M)\{}
+    
+    \CommentTok{\#initialize variables}
+\NormalTok{    u }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, N, T)}
+\NormalTok{    alpha }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(N, }\AttributeTok{mean =} \DecValTok{0}\NormalTok{, }\AttributeTok{sd =} \DecValTok{1}\NormalTok{)}
+\NormalTok{    y[ ,}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(N, }\AttributeTok{mean =}\NormalTok{ alpha}\SpecialCharTok{/}\NormalTok{(}\DecValTok{1}\SpecialCharTok{{-}}\NormalTok{p[l]), }\AttributeTok{sd =} \DecValTok{1}\SpecialCharTok{/}\NormalTok{(}\DecValTok{1}\SpecialCharTok{{-}}\NormalTok{p[l]}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+    \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{T) \{}
+\NormalTok{      u[ ,i] }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(N, }\AttributeTok{mean =} \DecValTok{0}\NormalTok{, }\AttributeTok{sd =} \DecValTok{1}\NormalTok{)}
+\NormalTok{    \}}
+    
+    \CommentTok{\#create y matrix}
+    \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{T)\{}
+\NormalTok{      y[ ,i}\SpecialCharTok{+}\DecValTok{1}\NormalTok{] }\OtherTok{=}\NormalTok{ p[l]}\SpecialCharTok{*}\NormalTok{y[ ,i] }\SpecialCharTok{+}\NormalTok{ alpha }\SpecialCharTok{+}\NormalTok{ u[ , i]}
+\NormalTok{    \}}
+    
+    \CommentTok{\#create dependent and independent variable}
+\NormalTok{    yy }\OtherTok{\textless{}{-}}\NormalTok{ y[,}\DecValTok{2}\SpecialCharTok{:}\NormalTok{(T}\SpecialCharTok{+}\DecValTok{1}\NormalTok{)]}
+\NormalTok{    ylag }\OtherTok{\textless{}{-}}\NormalTok{ y[,}\DecValTok{1}\SpecialCharTok{:}\NormalTok{T]}
+    
+    \CommentTok{\#demean}
+\NormalTok{    demean\_y }\OtherTok{\textless{}{-}}\NormalTok{ yy}\SpecialCharTok{{-}}\FunctionTok{rowMeans}\NormalTok{(yy)}
+\NormalTok{    demean\_lag }\OtherTok{\textless{}{-}}\NormalTok{ ylag}\SpecialCharTok{{-}}\FunctionTok{rowMeans}\NormalTok{(ylag)}
+    \CommentTok{\#Estimation, time for bidness}
+    
+    \CommentTok{\#fixed effects estimator}
+\NormalTok{    Y\_fe }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(demean\_y, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    lag\_fe }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(demean\_lag, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    fe }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Y\_fe }\SpecialCharTok{\textasciitilde{}}\NormalTok{ lag\_fe)}
+\NormalTok{    p\_fe[j,l] }\OtherTok{\textless{}{-}}\NormalTok{ fe}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{]}
+    
+    \CommentTok{\#first{-}differences estimator w/ IV}
+\NormalTok{    y\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(,N,T}\DecValTok{{-}2}\NormalTok{)}
+\NormalTok{    lag\_fd }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(,N,T}\DecValTok{{-}2}\NormalTok{)}
+\NormalTok{    inst }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(,N,T}\DecValTok{{-}2}\NormalTok{)}
+    \ControlFlowTok{for}\NormalTok{ (k }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{(T}\DecValTok{{-}2}\NormalTok{)) \{}
+\NormalTok{      y\_fd[ ,k] }\OtherTok{\textless{}{-}}\NormalTok{ y[ ,k}\SpecialCharTok{+}\DecValTok{2}\NormalTok{] }\SpecialCharTok{{-}}\NormalTok{ y[ ,k}\SpecialCharTok{+}\DecValTok{1}\NormalTok{]}
+\NormalTok{      lag\_fd[ ,k] }\OtherTok{\textless{}{-}}\NormalTok{ y[ ,k}\SpecialCharTok{+}\DecValTok{1}\NormalTok{] }\SpecialCharTok{{-}}\NormalTok{ y[ ,k]}
+\NormalTok{      inst[ ,k] }\OtherTok{\textless{}{-}}\NormalTok{ y[ ,k]}
+\NormalTok{    \}}
+\NormalTok{    Y\_fd }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(y\_fd, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    Lagged\_fd }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(lag\_fd, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    Instrument }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(inst, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{    fd }\OtherTok{\textless{}{-}} \FunctionTok{ivreg}\NormalTok{(Y\_fd }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Lagged\_fd}\SpecialCharTok{|}\NormalTok{Instrument)}
+\NormalTok{    p\_fd[j,l] }\OtherTok{\textless{}{-}}\NormalTok{ fd}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{] }
+    
+    \CommentTok{\#Hahn{-}Kuersteiner}
+\NormalTok{    p\_hk[j,l] }\OtherTok{\textless{}{-}}\NormalTok{ (}\DecValTok{1}\SpecialCharTok{+}\DecValTok{1}\SpecialCharTok{/}\NormalTok{T)}\SpecialCharTok{*}\NormalTok{p\_fe[j,l]}\SpecialCharTok{+}\DecValTok{1}\SpecialCharTok{/}\NormalTok{T}
+    
+    \CommentTok{\#jackknife}
+\NormalTok{    x }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, T, }\DecValTok{3}\NormalTok{)}
+\NormalTok{    b }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, M, }\DecValTok{3}\NormalTok{)}
+    \ControlFlowTok{for}\NormalTok{ (u }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{T) \{}
+      \CommentTok{\#t{-}1 matrix}
+\NormalTok{      t }\OtherTok{\textless{}{-}}\NormalTok{ y[,}\SpecialCharTok{{-}}\NormalTok{u]}
+      \CommentTok{\#estimation}
+\NormalTok{      yj }\OtherTok{\textless{}{-}}\NormalTok{ t[,}\DecValTok{2}\SpecialCharTok{:}\NormalTok{(T)]}
+\NormalTok{      yjlag }\OtherTok{\textless{}{-}}\NormalTok{ t[,}\DecValTok{1}\SpecialCharTok{:}\NormalTok{(T}\DecValTok{{-}1}\NormalTok{)]}
+\NormalTok{      demean\_yj }\OtherTok{\textless{}{-}}\NormalTok{ yj}\SpecialCharTok{{-}}\FunctionTok{rowMeans}\NormalTok{(yj)}
+\NormalTok{      demean\_lagj }\OtherTok{\textless{}{-}}\NormalTok{ yjlag}\SpecialCharTok{{-}}\FunctionTok{rowMeans}\NormalTok{(yjlag)}
+\NormalTok{      Yj\_fe }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(demean\_yj, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{      lagj\_fe }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{matrix}\NormalTok{(demean\_lagj, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+\NormalTok{      fej }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yj\_fe }\SpecialCharTok{\textasciitilde{}}\NormalTok{ lagj\_fe)}
+\NormalTok{      z }\OtherTok{\textless{}{-}}\NormalTok{ fej}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{]}
+\NormalTok{      x[u,l] }\OtherTok{\textless{}{-}}\NormalTok{ z}
+\NormalTok{    \}}
+    \CommentTok{\#sum of rho{-}t values}
+\NormalTok{    b }\OtherTok{\textless{}{-}} \FunctionTok{colSums}\NormalTok{(x)}
+\NormalTok{    b }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(b, }\AttributeTok{nrow =} \DecValTok{1}\NormalTok{, }\AttributeTok{ncol =} \DecValTok{3}\NormalTok{)}
+    \CommentTok{\#estimate bias corrected rho}
+\NormalTok{    p\_jk[j,l] }\OtherTok{\textless{}{-}}\NormalTok{ (T}\SpecialCharTok{*}\NormalTok{p\_fe[j,l])}\SpecialCharTok{{-}}\NormalTok{((T}\DecValTok{{-}1}\NormalTok{)}\SpecialCharTok{/}\NormalTok{T)}\SpecialCharTok{*}\NormalTok{(b[,l])}
+\NormalTok{  \}}
+  \CommentTok{\#compute bias}
+\NormalTok{  bias\_fe[l] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(p\_fe[ ,l])}\SpecialCharTok{{-}}\NormalTok{p[l]}
+\NormalTok{  bias\_fd[l] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(p\_fd[ ,l])}\SpecialCharTok{{-}}\NormalTok{p[l]}
+\NormalTok{  bias\_hk[l] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(p\_hk[ ,l])}\SpecialCharTok{{-}}\NormalTok{p[l]}
+\NormalTok{  bias\_jk[l] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(p\_jk[ ,l])}\SpecialCharTok{{-}}\NormalTok{p[l]}
+  \CommentTok{\#compute root{-}MSE}
+\NormalTok{  rmse\_fe[l] }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((p\_fe[,l]}\SpecialCharTok{{-}}\NormalTok{p[l])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{  rmse\_fd[l] }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((p\_fd[,l]}\SpecialCharTok{{-}}\NormalTok{p[l])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{  rmse\_hk[l] }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((p\_hk[,l]}\SpecialCharTok{{-}}\NormalTok{p[l])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{  rmse\_jk[l] }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((p\_jk[,l]}\SpecialCharTok{{-}}\NormalTok{p[l])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{\}}
+
+\NormalTok{hist1\_fe }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fe[,}\DecValTok{1}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist2\_fe }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fe[,}\DecValTok{2}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist3\_fe }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fe[,}\DecValTok{3}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+
+\NormalTok{hist1\_fd }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fd[,}\DecValTok{1}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist2\_fd }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fd[,}\DecValTok{2}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist3\_fd }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_fd[,}\DecValTok{3}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+
+\NormalTok{hist1\_hk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_hk[,}\DecValTok{1}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist2\_hk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_hk[,}\DecValTok{2}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist3\_hk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_hk[,}\DecValTok{3}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+
+\NormalTok{hist1\_jk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_jk[,}\DecValTok{1}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist2\_jk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_jk[,}\DecValTok{2}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+\NormalTok{hist3\_jk }\OtherTok{\textless{}{-}} \FunctionTok{qplot}\NormalTok{(p\_jk[,}\DecValTok{3}\NormalTok{],}\AttributeTok{geom=}\StringTok{"histogram"}\NormalTok{,}\AttributeTok{xlab=}\StringTok{"rho estimate"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"frequency"}\NormalTok{,}\AttributeTok{fill=}\FunctionTok{I}\NormalTok{(}\StringTok{"midnightblue"}\NormalTok{),}\AttributeTok{col=}\FunctionTok{I}\NormalTok{(}\StringTok{"white"}\NormalTok{)) }
+
+\FunctionTok{ggarrange}\NormalTok{(hist1\_fe, hist2\_fe, hist3\_fe, hist1\_fd, hist2\_fd, hist3\_fd,hist1\_hk, }
+\NormalTok{          hist2\_hk, hist3\_hk, hist1\_jk, hist2\_jk, hist3\_jk,}
+          \AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\StringTok{"FE(1)"}\NormalTok{, }\StringTok{"FE(2)"}\NormalTok{, }\StringTok{"FE(3)"}\NormalTok{, }\StringTok{"FD(1)"}\NormalTok{, }\StringTok{"FD(2)"}\NormalTok{, }\StringTok{"FD(3)"}\NormalTok{,}\StringTok{"HK(1)"}
+\NormalTok{                     , }\StringTok{"HK(2)"}\NormalTok{,  }\StringTok{"HK(3)"}\NormalTok{, }\StringTok{"JK(1)"}\NormalTok{, }\StringTok{"JK(2)"}\NormalTok{,}\StringTok{"JK(3)"}\NormalTok{),}
+          \AttributeTok{ncol =} \DecValTok{3}\NormalTok{, }\AttributeTok{nrow =} \DecValTok{4}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{q1-4_files/figure-latex/unnamed-chunk-5-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# create table for bias and rmse T=25}
+\NormalTok{bias25 }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(bias\_fe,bias\_fd,bias\_hk,bias\_jk)}
+\NormalTok{rmse25 }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(rmse\_fe,rmse\_fd,rmse\_hk,rmse\_jk)}
+\NormalTok{output25 }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(bias25,rmse25)}
+\FunctionTok{colnames}\NormalTok{(output25) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Fixed{-}Effects"}\NormalTok{,}\StringTok{"First{-}Difference"}\NormalTok{,}\StringTok{"Hahn{-}Kuersteiner"}\NormalTok{,}\StringTok{"Jackknife"}\NormalTok{)}
+\FunctionTok{rownames}\NormalTok{(output25) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Bias\_rho=0"}\NormalTok{,}\StringTok{"Bias\_rho=0.5"}\NormalTok{,}\StringTok{"Bias\_rho=0.95"}\NormalTok{,}\StringTok{"RMSE\_rho=0"}\NormalTok{,}\StringTok{"RMSE\_rho=0.5"}\NormalTok{,}\StringTok{"RMSE\_rho=0.95"}\NormalTok{)}
+\FunctionTok{stargazer}\NormalTok{(output25,}\AttributeTok{title=}\StringTok{"Q1 T=25"}\NormalTok{,}\AttributeTok{align=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{digits=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+## % Date and time: Thu, May 12, 2022 - 9:50:36 PM
+## % Requires LaTeX packages: dcolumn 
+## \begin{table}[!htbp] \centering 
+##   \caption{Q1 T=25} 
+##   \label{} 
+## \begin{tabular}{@{\extracolsep{5pt}} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
+## \\[-1.8ex]\hline 
+## \hline \\[-1.8ex] 
+## \multicolumn{1}{c}{} & \multicolumn{1}{c}{Fixed-Effects} & \multicolumn{1}{c}{First-Difference} & \multicolumn{1}{c}{Hahn-Kuersteiner} & \multicolumn{1}{c}{Jackknife} \\ 
+## \hline \\[-1.8ex] 
+## \multicolumn{1}{c}{Bias\_rho=0} & -0.041 & 0.0002 & -0.002 & -0.001 \\ 
+## \multicolumn{1}{c}{Bias\_rho=0.5} & -0.062 & 0.002 & -0.004 & 0.229 \\ 
+## \multicolumn{1}{c}{Bias\_rho=0.95} & -0.045 & 0.003 & 0.031 & 0.048 \\ 
+## \multicolumn{1}{c}{RMSE\_rho=0} & 0.045 & 0.031 & 0.021 & 0.045 \\ 
+## \multicolumn{1}{c}{RMSE\_rho=0.5} & 0.064 & 0.040 & 0.020 & 0.230 \\ 
+## \multicolumn{1}{c}{RMSE\_rho=0.95} & 0.046 & 0.086 & 0.032 & 0.049 \\ 
+## \hline \\[-1.8ex] 
+## \end{tabular} 
+## \end{table}
+\end{verbatim}
 
 \newpage
 
