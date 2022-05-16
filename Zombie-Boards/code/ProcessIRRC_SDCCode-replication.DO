@@ -1,8 +1,12 @@
 clear all
-set matsize 1000
+set type double
+set matsize 800
 
 *Filepath for Lauren's computer: 
-cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spring\zombie-boards-data"
+// cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spring\zombie-boards-data"
+
+*Filepath for Francisco:
+cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 
 /*This program generates the datasets used in Huang and Hilary (2018)*/
 
@@ -15,7 +19,7 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 		tempfile cusip_gvkeys
 		save `cusip_gvkeys', replace
 		
-	use "rawdata\irrc_director20072010.dta", clear /* IRRC Director dataset */
+	use "rawdata/irrc_director20072010.dta", clear /* IRRC Director dataset */
 	/*Some variables changed from 0/1 to Yes/No,
 		audit_membership and comp_membership changed to member/chair/empty */
 	drop employment_subsidiary
@@ -152,6 +156,44 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	keep gvkey year meetingdate  tenure_sd_outsider tenure_avg_outsider I_ceochair  I_boardind num_busy I_interlock num_dir blau_gender blau_ethnic blau_age /*avgoutsider_voting prop_age70 age_avg_outsider*/ prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960
 	duplicates drop 
 	sort gvkey meetingdate
+	
+	/************ Set up merge file - FAR **************************************
+	General idea is that crsp data is annual and directors meetings are more
+	so we want a map from the meetings to the right data. So my idea is tp grab
+	the nearest prior date to the meeting
+	
+	When I ran the code bellow there were shockingly few duplicates and honestly
+	nothing that seemed too too bad from a matching standpoint. I ended up just 
+	keep the most recently updated observation.
+	**************************************************************************/	
+	snapshot erase _all
+	snapshot save // 1
+	* first extract unique gvkey - date pairs
+	keep gvkey meetingdate year
+	gen datadate = meetingdate
+	rename year fyear
+	duplicates drop
+	snapshot save // 2
+	
+	* now get gvkey datadate pairs
+	use rawdata/crspcomp19502010_prc0mth.dta, clear
+	keep gvkey datadate linkdt fyear
+	duplicates drop
+	tempfile crspcomp
+	save `crspcomp', replace
+	
+	* merge on year 
+	snapshot restore 2 
+	joinby gvkey fyear using `crspcomp'
+	duplicates tag gvkey datadate, gen(tag)
+	sort gvkey datadate linkdt 
+	drop if (linkdt<linkdt[_n+1] & tag==1 & tag[_n+1]==1)
+	keep gvkey meetingdate 
+	save meetingdate_datadate_match_FAR, replace
+	snapshot restore 1
+
+	/************ END OF FAR CODE *********************************************/
+	
 	merge 1:1 gvkey meetingdate using "C:\Work\WRDS\data\meetingdate_datadate_match" /*match meetingdate to datadate*/
 	/* -> They don't actually explain what this is. I think we need to merge the
 			meetingdates and datadates within some range and then keep the closest one? Idk.*/
