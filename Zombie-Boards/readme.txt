@@ -36,7 +36,3 @@ firmlist-gvkeys.txt - save as firmlist.csv from /HH-Datasheet-and-code/, just a 
 	MainCode-replication.do
 
 	ProcessIRRC_SDCCode-replication.do
-		adapting the codes from the replication folder to work with our downloaded files
-		Notes:
-			1. Their code uses gvkey but the IRRC data I found only has CUSIP, so I merged in the gvkeys from the CRSP-Compustat merged dataset
-			2. I think we need to generate I_ind, I_outsider, and I_busy? Also I think I_ind and I_outsider are the same? idk

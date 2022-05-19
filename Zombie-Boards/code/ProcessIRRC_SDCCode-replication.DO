@@ -1,9 +1,10 @@
 clear all
 set type double
 set matsize 800
+pause on
 
 *Filepath for Lauren's computer: 
-// cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spring\zombie-boards-data"
+cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth Metrics\Spring\zombie-boards-data"
 
 *Filepath for Francisco:
 cap cd "/Users/francisco/Dropbox/zombie-boards-data"
@@ -14,6 +15,10 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 /*Process IRRC Director dataset*/
 *=======================================================================
 	use "rawdata/crspcomp19502010_prc0mth.dta", clear
+		drop linkprim liid linktype lpermno lpermco linkdt linkenddt
+		duplicates drop
+		tempfile crspcomp
+		save `crspcomp', replace
 		keep gvkey cusip
 		duplicates drop
 		tempfile cusip_gvkeys
@@ -153,11 +158,11 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	drop I
 	*/
 	
-	keep gvkey year meetingdate  tenure_sd_outsider tenure_avg_outsider I_ceochair  I_boardind num_busy I_interlock num_dir blau_gender blau_ethnic blau_age /*avgoutsider_voting prop_age70 age_avg_outsider*/ prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960
+	keep gvkey year meetingdate  tenure_sd_outsider tenure_avg_outsider num_dir blau_gender blau_ethnic blau_age /*avgoutsider_voting prop_age70 age_avg_outsider*/ prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960
 	duplicates drop 
 	sort gvkey meetingdate
 	
-	/************ Set up merge file - FAR **************************************
+	/************ Set up merge file - FAR & LM ********************************
 	General idea is that crsp data is annual and directors meetings are more
 	so we want a map from the meetings to the right data. So my idea is tp grab
 	the nearest prior date to the meeting
@@ -169,46 +174,65 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	snapshot erase _all
 	snapshot save // 1
 	* first extract unique gvkey - date pairs
-	keep gvkey meetingdate year
-	gen datadate = meetingdate
-	rename year fyear
+	keep gvkey meetingdate /*year
+	gen datadate = meetingdate*/
+	/*rename year fyear*/
 	duplicates drop
 	snapshot save // 2
 	
 	* now get gvkey datadate pairs
-	use rawdata/crspcomp19502010_prc0mth.dta, clear
-	keep gvkey datadate linkdt fyear
+	use "rawdata/crspcomp19502010_prc0mth.dta", clear
+	keep gvkey datadate /*linkdt fyear*/
 	duplicates drop
-	tempfile crspcomp
-	save `crspcomp', replace
+	tempfile gvkey_date
+	save `gvkey_date', replace
 	
-	* merge on year 
+	* merge on gvkey and keep mininmum difference 
 	snapshot restore 2 
-	joinby gvkey fyear using `crspcomp'
-	duplicates tag gvkey datadate, gen(tag)
+	joinby gvkey using `gvkey_date', unm(both)
+		tostring meetingdate, replace
+		tostring datadate, replace
+		gen mtgdate_dt = date(meetingdate, "YMD")
+			format mtgdate_dt %td
+		gen datadate_dt = date(datadate, "YMD")
+			format datadate_dt %td
+		gen diff_meetdate_datadate = mtgdate_dt - datadate_dt
+			*replace diff = -1 * diff if diff < 0 // maybe we want closest absolute distance?
+			replace diff = . if diff < 0 // maybe we want financials available before the meeting?
+			bys gvkey meetingdate: egen min_diff = min(diff)
+			keep if diff_meetdate_datadate == min_diff & meetingdate != "."
+			drop if diff_meetdate_datadate>720 /*drop if the closest match is >2 years apart */
+		destring meetingdate, replace
+		destring datadate, replace
+	keep gvkey meetingdate datadate diff_meetdate_datadate
+	save "meetingdate_datadate_match_LM", replace
+			
+	/*duplicates tag gvkey datadate, gen(tag)
 	sort gvkey datadate linkdt 
 	drop if (linkdt<linkdt[_n+1] & tag==1 & tag[_n+1]==1)
 	keep gvkey meetingdate 
-	save meetingdate_datadate_match_FAR, replace
+	save meetingdate_datadate_match_FAR, replace */
+	
 	snapshot restore 1
 
 	/************ END OF FAR CODE *********************************************/
 	
-	merge 1:1 gvkey meetingdate using "C:\Work\WRDS\data\meetingdate_datadate_match" /*match meetingdate to datadate*/
-	/* -> They don't actually explain what this is. I think we need to merge the
-			meetingdates and datadates within some range and then keep the closest one? Idk.*/
+	merge 1:1 gvkey meetingdate using "meetingdate_datadate_match_LM"
+		/*match meetingdate to datadate*/
+	 * -> They don't actually include this dataset in the replication files so FAR and LM fixed it
 	keep if _merge==3
 	drop _merge 
-	save temp,replace
+	*save temp,replace
 	
-	use temp,clear
-	merge m:1 gvkey datadate using "C:\Work\WRDS\Original data\crspcomp19502010_prc0mth.dta"
+	merge m:1 gvkey datadate using `crspcomp'
 	keep if _merge==3 
 	drop _merge
-	drop if diff_meetdate_datadate>720 /*drop if the cloest meetingdate and datadate match is more than 2 years apart */
+	drop if diff_meetdate_datadate>720 /*drop if closest match is >2 years apart */
 	drop if year<1998 /*drop pre-1998 data as dirsince information are largely missing */
 	gen tenure2_avg_outsider=tenure_avg_outsider*tenure_avg_outsider
-	save "C:\Work\tenure\Program\JAR Code\dataset_irrc.dta",replace
+	
+	gen cn6 = substr(cusip,1,6)
+	save "dataset_irrc.dta",replace
 	
 	/*We have mannually cleaned the IRRC dataset to fix following issues
 	1. The company identifier legacy_pps_id and cn6 is not one to one. manually process to get legacy_pps_id gvkey match
@@ -219,10 +243,12 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	*/	
 	
 *=======================================================================
-/*Process SDC dataset*/
+/*Process SDC dataset
+(LM note: their management of this dataset is atrocious) */
 *=======================================================================
 	
-	use "C:\Work\WRDS\Original data\SDC\MA19962010\dataset_ma",clear /*data from SDC download*/
+	use "rawdata/sdc_ma19962010.dta",clear /*data from SDC download*/
+	/* Dropping because these variables don't actually exist but we also don't need them
 	gen acq_hightech=0 if AcquirHighTechCode=="0"
 	replace acq_hightech=1 if AcquirHighTechCode~="0"
 	drop AcquirHighTechCode
@@ -255,24 +281,32 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	
 	gen hightech=1 if acq_hightech==1&target_hightech==1
 	replace hightech=0 if hightech==.
+	*/
 	
+	ren master_deal_no dealnumber
 	format dealnumber %20.0g
 	compress
 	
 *impose constraint following Masulis et al (2007) JF paper
 	*1) Acquisition is completed
 	
-	keep if Status=="C" 
-	drop DateWithdrawn Status
+	keep if statuscode=="C" 
+	*drop DateWithdrawn Status
 	
 	*2)control less than 50% prior to transaction and own 100% after transaction
-	replace heldpriortotransaction=0 if heldpriortotransaction==.
-	drop if heldpriortotransaction>=50 
+	replace pheld=0 if pheld==.
+	drop if pheld>=50 
 	
-	keep if OwnedAfterTransaction==100 
+	keep if pctown==100 
 		
 	*3)Deal value disclosed in SDC is more than 1 Mil
-	keep if ValueofTransactionmil>1 &ValueofTransactionmil~=. 
-	drop if MAType=="Repurchases"
-	drop if MAType=="Self Tenders, Recaps"
-	save "C:\Work\tenure\data\dataset_ma",replace
+	*keep if ValueofTransactionmil>1 &ValueofTransactionmil~=.
+	*Consulted: http://mergers.thomsonib.com/td/DealSearch/help/def.htm
+	keep if rankval > 1 & rankval != .
+	
+	*drop if MAType=="Repurchases"
+	drop if repurch == "Yes"
+	*drop if MAType=="Self Tenders, Recaps"
+	drop if stender == "Yes"
+	drop if recap == "Yes"
+	save "sdc_processed",replace

@@ -3,7 +3,7 @@ set matsize 1000
 
 
 *Filepath for Lauren's computer: 
-cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spring\zombie-boards-data"
+cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth Metrics\Spring\zombie-boards-data"
 
 /*This program generates the datasets used in Huang and Hilary (2018)*/
 
@@ -14,7 +14,8 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 /*Process and Merge Variables from IRRC governance dataset*/
 	use "rawdata/govlegacy19902006.dta",clear /*governance legacy file*/
 	keep cn6 year cboard
-	save temp2,replace
+	tempfile temp2
+	save `temp2',replace
 	
 	use "rawdata/gov20072015.dta",clear
 	gen cn6=substr(cusip,1,6) 
@@ -24,13 +25,14 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	drop cboard
 	rename I cboard
 	keep cn6 year cboard
-	append using temp2
+	append using `temp2'
 	drop if cn6==""
 	duplicates drop
-	save cboard,replace
+	tempfile cboard
+	save `cboard',replace
 
-	use "rawdata/dataset_irrc.dta",clear /*processed under ProcessIRRC_SDCCode.do*/
-	merge m:1 cn6 year using cboard
+	use "dataset_irrc.dta",clear /*processed under ProcessIRRC_SDCCode.do*/
+	merge m:1 cn6 year using `cboard'
 	drop if _merge==2
 	drop _merge
 	replace cboard=0 if cboard==.
@@ -42,21 +44,23 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	
 
 /*Process and Merge Variables from Execucomp*/
-	use "c:\work\wrds\Original data\ceo_Execucomp19922010",clear /*execucomp for CEO*/
+	use "rawdata/ceo_Execucomp19922010",clear /*execucomp for CEO*/
+	keep if ceoann == "CEO"
 	rename year fyear
 	sort gvkey fyear	
 
-	rename fullname ceo_fullname
+	rename exec_fullname ceo_fullname
 	rename age ceoage
-	replace ceotenure=ceotenure-1
+	gen ceotenure = fyear - int(becameceo/10000)
+		replace ceotenure = . if ceotenure < 0
+	*replace ceotenure=ceotenure-1
 	
-	keep gvkey fyear execid ceo_fullname shrown_excl_opts ceotenure ceoage I_ceofounder tdc1 
-	save execucomp,replace
+	keep gvkey fyear execid ceo_fullname shrown_excl_opts ceotenure ceoage /*I_ceofounder*/ tdc1 
+	tempfile execucomp
+	save `execucomp',replace
 		
 	use dataset,clear
-	merge m:1 gvkey fyear using execucomp
-	drop if _merge==2 
-	drop _merge
+	merge m:1 gvkey fyear using `execucomp', keep(1 3) nogen
 	gen ceopctowned=shrown_excl_opts/(csho*1000)*100
 	replace ceopctowned=100 if ceopctowned>100&ceopctowned<.
 	replace ceopctowned=0 if ceopctowned==. 
@@ -64,14 +68,14 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 
 		
 /*Process and Merge Number of Segment from Compustat Segment Data*/
-	use "C:\Work\WRDS\Original data\compustatsegment19762010.dta",clear /*compustat segment file*/
+	use "rawdata/compustatsegment19762010.dta",clear /*compustat segment file*/
 	keep gvkey datadate stype snms sic*
 	keep if stype=="BUSSEG"
 	drop stype
 	destring(gvkey),replace
 	duplicates drop
 	drop if snms==""
-	drop if sics1==""
+	drop if sics1==.
 	compress
 	sort gvkey datadate sics1
 	by gvkey datadate sics1: keep if _n==1	
@@ -80,10 +84,11 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	duplicates drop
 	sort gvkey datadate
 	by gvkey: gen nseg_lag=nseg[_n-1]	
-	save nseg,replace
+	tempfile nseg
+	save `nseg',replace
 	
 	use dataset,clear
-	merge m:1 gvkey datadate using nseg
+	merge m:1 gvkey datadate using `nseg'
 	drop if _merge==2
 	drop _merge
 	replace nseg_lag=0 if nseg_lag==.
@@ -91,20 +96,20 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	save dataset,replace
 	
 /*Generate Variables from Compustat*/	
-	use "C:\Work\WRDS\original data\compustat19502012.dta",clear
+	/*use "rawdata/compustat19502012.dta",clear
 	keep gvkey fyear gdwl
 	duplicates drop
 	sort gvkey fyear
 	save temp1,replace
 	
-	use "C:\Work\WRDS\Original data\crspcomp19502010_prc0mth.dta",clear /*crsp compustat merged file*/
+	use "rawdata/crspcomp19502010_prc0mth.dta",clear /*crsp compustat merged file*/
 	merge 1:1 gvkey fyear using "C:\Work\WRDS\original data\compustat19502010_disclosure" /*merge additional compustat variables*/
 	drop if _merge==2
 	drop _merge
 	merge 1:1 gvkey fyear using temp1
 	drop if _merge==2
 	drop _merge
-	
+	*/
 	keep gvkey fyear sale gdwl txdb itcb csho prcc_f at dlc dltt ni xido at ceq capxv lt re act lct
 	duplicates drop
 	sort gvkey fyear
@@ -135,17 +140,18 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	gen equityiss_lag=l.equityiss
 	gen curr_lag=l.curr
 	keep gvkey fyear tobin ln_roa_g salegrowth_lag ln_roa_g_lag  gdwl_at_lag leverage_lag  ln_sale_lag capex_at_lag debtiss_lag equityiss_lag curr_lag
-	save temp1,replace
+	tempfile temp1
+	save `temp1',replace
 
 	use dataset,clear
-	merge m:1 gvkey fyear using temp1
+	merge m:1 gvkey fyear using `temp1'
 	drop if _merge==2
 	drop _merge
 	save dataset,replace
 
 
 /*Process and Merge SDC data*/
-	use "C:\Work\tenure\data\dataset_ma",clear /*processed under ProcessIRRC_SDCCode.do*/
+	use "sdc_processed",clear /*processed under ProcessIRRC_SDCCode.do*/
 	keep gvkey fyear dealnumber
 	duplicates drop
 	sort gvkey fyear
@@ -156,10 +162,11 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	tsset gvkey fyear
 	gen num_acq_lag=l.num_acq
 	gen I_acq_lag=l.I_acq
-	save temp,replace
+	tempfile temp
+	save `temp',replace
 	
 	use dataset,clear
-	merge m:1 gvkey fyear using temp
+	merge m:1 gvkey fyear using `temp'
 	drop if _merge==2
 	drop _merge
 	local list="I_acq num_acq I_acq_lag num_acq_lag"
@@ -198,7 +205,7 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	save dataset,replace
 	
 /*Merge stock return and volatility*/
-	use "C:\Work\WRDS\Cleaned data\ret_fiscal_date.dta" ,clear
+	use "rawdata/ret_fiscal_date.dta" ,clear
 	sort gvkey fyear date
 	by gvkey fyear: egen stdret=sd(ret)
 	gen lnret=ln(1+ret)
@@ -209,7 +216,8 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	tsset gvkey fyear
 	gen stdret_lag=l.stdret
 	gen ret_fiscal_lag=l.ret_fiscal
-	save temp,replace
+	tempfile temp
+	save `temp',replace
 	
 	use dataset,clear
 	merge m:1 gvkey fyear using temp
@@ -230,7 +238,8 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\Booth Metrics\Spri
 	keep if fyear>=1998&fyear<=2010
 	
 	*define controls
-	global control2a="tenure_sd_outsider ceoage ceotenure  ceopctowned I_ceofounder I_ceochair cboard I_boardind num_busy I_interlock num_dir salegrowth_lag ln_roa_g_lag lnret_fiscal_lag ln_firmage"		
+	global control2a="tenure_sd_outsider ceoage ceotenure  ceopctowned  I_ceochair cboard I_boardind num_busy I_interlock num_dir salegrowth_lag ln_roa_g_lag lnret_fiscal_lag ln_firmage"
+	*** Removed I_ceofounder from control2a
 	global control2b="num_acq_lag gdwl_at_lag leverage_lag nseg_lag ln_sale_lag capex_at_lag ln_stdret_lag I_ipospin_lag"		
 	global control="blau_gender blau_ethnic blau_age avgoutsider_voting prop_age70 age_avg_outsider prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960 equityiss_lag debtiss_lag curr_lag"
 	local list="tobin ln_roa_g"
