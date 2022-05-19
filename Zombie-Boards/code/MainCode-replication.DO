@@ -32,9 +32,7 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	save `cboard',replace
 
 	use "dataset_irrc.dta",clear /*processed under ProcessIRRC_SDCCode.do*/
-	merge m:1 cn6 year using `cboard'
-	drop if _merge==2
-	drop _merge
+	merge m:1 cn6 year using `cboard', keep(1 3) nogen
 	replace cboard=0 if cboard==.
 	sort gvkey fyear
 	by gvkey fyear: egen max=max(cboard)
@@ -152,21 +150,23 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 
 /*Process and Merge SDC data*/
 	use "sdc_processed",clear /*processed under ProcessIRRC_SDCCode.do*/
-	keep gvkey fyear dealnumber
+	keep acusip fyear dealnumber
+	ren acusip cusip // acquiror cusip
 	duplicates drop
-	sort gvkey fyear
-	by gvkey fyear: gen num_acq=_N
-	keep gvkey fyear num_acq
+	sort cusip fyear
+	by cusip fyear: gen num_acq=_N
+	keep cusip fyear num_acq
 	duplicates drop
 	gen I_acq=1
-	tsset gvkey fyear
+	egen tempid = group(cusip) // cusip string so can't be used w tsset
+	tsset tempid fyear
 	gen num_acq_lag=l.num_acq
 	gen I_acq_lag=l.I_acq
 	tempfile temp
 	save `temp',replace
 	
 	use dataset,clear
-	merge m:1 gvkey fyear using `temp'
+	merge m:1 cusip fyear using `temp'
 	drop if _merge==2
 	drop _merge
 	local list="I_acq num_acq I_acq_lag num_acq_lag"
@@ -183,16 +183,26 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	b)If the information is not available there, we do a manual search from the Capital IQ and Hoover to identify founding year. 
 	c)If it is still not available, we use first year when a firm appears in the CRSP database.	
 	*/
-
+	
+	*-- Lauren's firm age codes ---*
+	*import excel "rawdata/IPO2609.xls", clear // punting on this for now, just doing (c)
+	use "rawdata/crspcomp19502010_prc0mth.dta", clear
+		keep gvkey fyear
+		bys gvkey: egen minyr = min(fyear)
+		gen firmage = fyear - minyr + 1
+		gen ln_firmage = ln(firmage)
+		duplicates drop
+		tempfile firmage
+		save `firmage', replace
+	*------------------------------*
+	
 	use dataset,clear
-	merge m:1 gvkey fyear using firmage
-	drop if _merge==2
-	drop _merge
+	merge m:1 gvkey fyear using `firmage', keep(1 3) nogen
 	save dataset,replace
 
 
 /*Merge IPO Spin Off dummy from SDC*/
-	use dataset,clear
+	/*use dataset,clear
 	merge m:1  year cn6 using ipo 
 	drop if _merge==2
 	drop _merge
@@ -202,10 +212,10 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	replace I_spinoff_lag=0 if I_spinoff_lag==.
 	replace I_ipo_lag=0 if I_ipo_lag==.
 	gen I_ipospin_lag=(I_spinoff_lag==1|I_ipo_lag==1)
-	save dataset,replace
+	save dataset,replace*/
 	
 /*Merge stock return and volatility*/
-	use "rawdata/ret_fiscal_date.dta" ,clear
+/*	use "rawdata/crspcomp19502010_prc0mth.dta" ,clear
 	sort gvkey fyear date
 	by gvkey fyear: egen stdret=sd(ret)
 	gen lnret=ln(1+ret)
@@ -233,14 +243,15 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	destring(execid),replace	
 	gen sich2=floor(sich/100)
 	gen indyear=sich2*fyear
-	
+	*/
 	*impose sample period restriction
 	keep if fyear>=1998&fyear<=2010
 	
 	*define controls
-	global control2a="tenure_sd_outsider ceoage ceotenure  ceopctowned  I_ceochair cboard I_boardind num_busy I_interlock num_dir salegrowth_lag ln_roa_g_lag lnret_fiscal_lag ln_firmage"
-	*** Removed I_ceofounder from control2a
-	global control2b="num_acq_lag gdwl_at_lag leverage_lag nseg_lag ln_sale_lag capex_at_lag ln_stdret_lag I_ipospin_lag"		
+	global control2a="tenure_sd_outsider ceoage ceotenure  ceopctowned  I_ceochair cboard I_boardind num_busy I_interlock num_dir salegrowth_lag ln_roa_g_lag  ln_firmage"
+	*** Removed I_ceofounder, lnret_fiscal_lag from control2a
+	global control2b="num_acq_lag gdwl_at_lag leverage_lag nseg_lag ln_sale_lag capex_at_lag "
+	*** Removed ln_stdret_lag, I_ipospin_lag from control2b
 	global control="blau_gender blau_ethnic blau_age avgoutsider_voting prop_age70 age_avg_outsider prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960 equityiss_lag debtiss_lag curr_lag"
 	local list="tobin ln_roa_g"
 	foreach var of local list{
@@ -259,11 +270,11 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 		replace `var'=r(c_1) if `var'<r(c_1)&`var'<.
 		replace `var'=r(c_2) if `var'>r(c_2)&`var'<.
 	}	
-	foreach var of global control{
+	/*foreach var of global control{
 		centile `var',c (1 99)
 		replace `var'=r(c_1) if `var'<r(c_1)&`var'<.
 		replace `var'=r(c_2) if `var'>r(c_2)&`var'<.
-	}	
+	}	*/
 	save dataset,replace
 	
 
@@ -280,9 +291,9 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 
 *Include Additional Firm-Year Controls	
 	use dataset,clear
-	xi:areg tobin tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b $control  i.fyear,abs(gvkey) cluster(gvkey)
+	xi:areg tobin tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b /*$control*/  i.fyear,abs(gvkey) cluster(gvkey)
 	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace	
-	xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider  $control2a  $control2b $control i.fyear,abs(gvkey) cluster(gvkey)
+	xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider  $control2a  $control2b /*$control*/ i.fyear,abs(gvkey) cluster(gvkey)
 	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append	
 
 	
@@ -291,9 +302,9 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	xi: reghdfe tobin tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
 	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace
 	xi: reghdfe ln_roa_g tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
-	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append	
+	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append
 	
-
+/*
 *Include industry*year joint Fixed Effect	
 	use dataset,clear
 	xi:reghdfe tobin tenure_avg_outsider tenure2_avg_outsider   $control2a $control2b ,abs(gvkey indyear) cluster(gvkey)
@@ -321,3 +332,4 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	predict res_tobin,residual
 	
 	graph twoway lowess res_tobin  tenure_avg_outsider, mean xlabel(0(2)30) xtitle("Board Tenure") ytitle("Residual Tobin's Q") title("Residual Tobin's Q and Board Tenure")
+*/

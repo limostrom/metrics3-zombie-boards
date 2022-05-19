@@ -47,7 +47,9 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	bys did year: egen n_directorships = count(meetingdate)
 	gen I_busy = n_directorships > 3
 		drop n_directorships
-	gen I_ceochair = employment_ceo == 1 & employment_chairman == 1
+	gen ceochair = employment_ceo == 1 & employment_chairman == 1
+	bys gvkey meetingdate: egen I_ceochair = max(ceochair)
+		drop ceochair
 	
 
 	/*board tenure*/
@@ -158,7 +160,7 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	drop I
 	*/
 	
-	keep gvkey year meetingdate  tenure_sd_outsider tenure_avg_outsider num_dir blau_gender blau_ethnic blau_age /*avgoutsider_voting prop_age70 age_avg_outsider*/ prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960
+	keep gvkey year meetingdate  tenure_sd_outsider tenure_avg_outsider num_dir blau_gender blau_ethnic blau_age /*avgoutsider_voting prop_age70 age_avg_outsider*/ prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960 I_ceochair I_boardind I_interlock num_busy
 	duplicates drop 
 	sort gvkey meetingdate
 	
@@ -309,4 +311,6 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	*drop if MAType=="Self Tenders, Recaps"
 	drop if stender == "Yes"
 	drop if recap == "Yes"
+	
+	gen fyear = int(dateeff/10000)
 	save "sdc_processed",replace
