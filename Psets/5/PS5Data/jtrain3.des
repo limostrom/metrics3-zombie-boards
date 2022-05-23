@@ -1,0 +1,49 @@
+-------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\mitbook1_2e\textfiles\jtrain3.des
+  log type:  text
+ opened on:   8 Feb 2011, 17:52:09
+
+. ds
+train    educ     hisp     re74     unem75   re78     trre74   trun74   avgre    unem78
+age      black    married  re75     unem74   agesq    trre75   trun75   travgre  em78
+
+. des
+
+Contains data from jtrain3.dta
+  obs:         2,675                          
+ vars:            20                          17 Sep 2005 07:41
+ size:       133,750 (99.9% of memory free)
+-------------------------------------------------------------------------------------------------------------------------
+              storage  display     value
+variable name   type   format      label      variable label
+-------------------------------------------------------------------------------------------------------------------------
+train           byte   %9.0g                  =1 if in job training
+age             byte   %9.0g                  in years, 1977
+educ            byte   %9.0g                  years of schooling
+black           byte   %9.0g                  =1 if black
+hisp            byte   %9.0g                  =1 if Hispanic
+married         byte   %9.0g                  =1 if married
+re74            float  %9.0g                  '74 earnings, $1000s '82
+re75            float  %9.0g                  '75 earnings, $1000s '82
+unem75          byte   %9.0g                  =1 if unem. all of '75
+unem74          byte   %9.0g                  =1 if unem. all of '74
+re78            float  %9.0g                  '78 earnings, $1000s '82
+agesq           int    %9.0g                  age^2
+trre74          float  %9.0g                  train*re74
+trre75          float  %9.0g                  train*re75
+trun74          byte   %9.0g                  train*unem74
+trun75          byte   %9.0g                  train*unem75
+avgre           float  %9.0g                  (re74 + re75)/2
+travgre         float  %9.0g                  train*avgre
+unem78          byte   %9.0g                  =1 if unem. all of '78
+em78            byte   %9.0g                  1 - unem78
+-------------------------------------------------------------------------------------------------------------------------
+Sorted by:  
+
+. log close
+      name:  <unnamed>
+       log:  C:\mitbook1_2e\textfiles\jtrain3.des
+  log type:  text
+ closed on:   8 Feb 2011, 17:52:14
+-------------------------------------------------------------------------------------------------------------------------

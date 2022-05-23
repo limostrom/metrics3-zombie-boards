@@ -1,0 +1,57 @@
+-------------------------------------------------------------------------------
+       log:  C:\mitbook\textfiles\fertil2.des
+  log type:  text
+ opened on:  22 Apr 2002, 10:34:28
+
+. ds
+mnthborn  yearborn  age       electric  radio     tv        bicycle   educ     
+ceb       agefbrth  children  knowmeth  usemeth   monthfm   yearfm    agefm    
+idlnchld  heduc     agesq     urban     urb_educ  spirit    protest   catholic 
+frsthalf  educ0     evermarr  educ7     
+
+. des
+
+Contains data from fertil2.dta
+  obs:         4,361                          
+ vars:            28                          18 Jan 2000 11:17
+ size:       143,913 (85.6% of memory free)
+-------------------------------------------------------------------------------
+              storage  display     value
+variable name   type   format      label      variable label
+-------------------------------------------------------------------------------
+mnthborn        byte   %8.0g                  month woman born
+yearborn        byte   %8.0g                  year woman born
+age             byte   %8.0g                  age in years
+electric        byte   %8.0g                  =1 if has electricity
+radio           byte   %8.0g                  =1 if has radio
+tv              byte   %8.0g                  =1 if has tv
+bicycle         byte   %8.0g                  =1 if has bicycle
+educ            byte   %8.0g                  years of education
+ceb             byte   %8.0g                  children ever born
+agefbrth        byte   %8.0g                  age at first birth
+children        byte   %8.0g                  number of living children
+knowmeth        byte   %8.0g                  =1 if know about birth control
+usemeth         byte   %8.0g                  =1 if ever use birth control
+monthfm         byte   %8.0g                  month of first marriage
+yearfm          byte   %8.0g                  year of first marriage
+agefm           byte   %8.0g                  age at first marriage
+idlnchld        byte   %8.0g                  'ideal' number of children
+heduc           byte   %8.0g                  husband's years of education
+agesq           int    %8.0g                  age^2
+urban           byte   %8.0g                  =1 if live in urban area
+urb_educ        byte   %8.0g                  urban*educ
+spirit          byte   %9.0g                  =1 if religion == spirit
+protest         byte   %9.0g                  =1 if religion == protestant
+catholic        byte   %9.0g                  =1 if religion == catholic
+frsthalf        byte   %9.0g                  =1 if mnthborn <= 6
+educ0           byte   %9.0g                  =1 if educ == 0
+evermarr        byte   %9.0g                  =1 if ever married
+educ7           byte   %9.0g                  =1 if educ >= 7
+-------------------------------------------------------------------------------
+Sorted by:  
+
+. log close
+       log:  C:\mitbook\textfiles\fertil2.des
+  log type:  text
+ closed on:  22 Apr 2002, 10:34:46
+-------------------------------------------------------------------------------
