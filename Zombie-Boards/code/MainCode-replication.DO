@@ -215,22 +215,28 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	save dataset,replace*/
 	
 /*Merge stock return and volatility*/
-/*	use "rawdata/crspcomp19502010_prc0mth.dta" ,clear
-	sort gvkey fyear date
-	by gvkey fyear: egen stdret=sd(ret)
+	use "rawdata/crsp_ret_date.dta" ,clear
+	gen fyear = int(date/10000)
+	gen cusip6 = substr(cusip,1,6)
+	drop if inlist(ret, "", "C", "B")
+	destring ret, replace
+	bys cusip6 fyear: egen stdret=sd(ret)
 	gen lnret=ln(1+ret)
-	by gvkey fyear: egen sum=sum(lnret)
+	bys cusip6 fyear: egen sum=sum(lnret)
 	gen ret_fiscal=exp(sum)-1
-	keep gvkey fyear stdret ret_fiscal 
+	keep cusip6 fyear stdret ret_fiscal 
 	duplicates drop
-	tsset gvkey fyear
+	egen tempid = group(cusip6)
+	tsset tempid fyear
 	gen stdret_lag=l.stdret
 	gen ret_fiscal_lag=l.ret_fiscal
+	drop tempid
 	tempfile temp
 	save `temp',replace
 	
 	use dataset,clear
-	merge m:1 gvkey fyear using temp
+	gen cusip6 = substr(cusip,1,6)
+	merge m:1 cusip6 fyear using `temp'
 	drop if _merge==2
 	drop _merge	
 	gen ln_stdret_lag=ln(stdret_lag)
@@ -243,15 +249,15 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	destring(execid),replace	
 	gen sich2=floor(sich/100)
 	gen indyear=sich2*fyear
-	*/
+
 	*impose sample period restriction
 	keep if fyear>=1998&fyear<=2010
 	
 	*define controls
-	global control2a="tenure_sd_outsider ceoage ceotenure  ceopctowned  I_ceochair cboard I_boardind num_busy I_interlock num_dir salegrowth_lag ln_roa_g_lag  ln_firmage"
-	*** Removed I_ceofounder, lnret_fiscal_lag from control2a
-	global control2b="num_acq_lag gdwl_at_lag leverage_lag nseg_lag ln_sale_lag capex_at_lag "
-	*** Removed ln_stdret_lag, I_ipospin_lag from control2b
+	global control2a="tenure_sd_outsider ceoage ceotenure  ceopctowned  I_ceochair cboard I_boardind num_busy I_interlock num_dir salegrowth_lag ln_roa_g_lag  ln_firmage lnret_fiscal_lag"
+	*** Removed I_ceofounder from control2a
+	global control2b="num_acq_lag gdwl_at_lag leverage_lag nseg_lag ln_sale_lag capex_at_lag ln_stdret_lag"
+	*** Removed I_ipospin_lag from control2b
 	global control="blau_gender blau_ethnic blau_age avgoutsider_voting prop_age70 age_avg_outsider prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960 equityiss_lag debtiss_lag curr_lag"
 	local list="tobin ln_roa_g"
 	foreach var of local list{
@@ -281,28 +287,33 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 *====================================================================================
 *Analyses	
 *====================================================================================
+est clear
 
 *Baseline Specification
 	use dataset,clear
-	xi:areg tobin tenure_avg_outsider tenure2_avg_outsider $control2a  $control2b i.fyear,abs(gvkey) cluster(gvkey)
-	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace 	
-	xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b i.fyear,abs(gvkey) cluster(gvkey)
-	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append	
+	eststo m1a: xi:areg tobin tenure_avg_outsider tenure2_avg_outsider $control2a  $control2b i.fyear,abs(gvkey) cluster(gvkey)
+	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace 	
+	eststo m1b: xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b i.fyear,abs(gvkey) cluster(gvkey)
+	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append	
 
 *Include Additional Firm-Year Controls	
 	use dataset,clear
-	xi:areg tobin tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b /*$control*/  i.fyear,abs(gvkey) cluster(gvkey)
-	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace	
-	xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider  $control2a  $control2b /*$control*/ i.fyear,abs(gvkey) cluster(gvkey)
-	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append	
+	eststo m2a: xi:areg tobin tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b /*$control*/  i.fyear,abs(gvkey) cluster(gvkey)
+	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace	
+	eststo m2b: xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider  $control2a  $control2b /*$control*/ i.fyear,abs(gvkey) cluster(gvkey)
+	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append	
 
 	
 *Include Firm, Year and CEO Fixed Effects
 	use dataset,clear
-	xi: reghdfe tobin tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
-	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace
-	xi: reghdfe ln_roa_g tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
-	outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append
+	eststo m3a: xi: reghdfe tobin tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
+	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace
+	eststo m3b: xi: reghdfe ln_roa_g tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
+	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append
+	
+	
+esttab m* using table2.tex, label replace booktabs longtable ///
+  title(Board Tenure and Firm Value\label{tab2})
 	
 /*
 *Include industry*year joint Fixed Effect	

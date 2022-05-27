@@ -19,8 +19,11 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 		duplicates drop
 		tempfile crspcomp
 		save `crspcomp', replace
-		keep gvkey cusip
+		keep gvkey cusip fyear conm
+		gen cusip6 = substr(cusip,1,6)
+		keep cusip6 gvkey fyear conm
 		duplicates drop
+			drop if cusip6 == "37045V" & gvkey == 17197
 		tempfile cusip_gvkeys
 		save `cusip_gvkeys', replace
 		
@@ -37,7 +40,10 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	}
 	append using "rawdata/irrc_directorlegacy19962006.dta", force /*IRRC director legacy dataset*/
 	egen did = group(fullname)
-	merge m:1 cusip using `cusip_gvkeys', keepus(gvkey) keep(1 3)
+		gen cusip6 = substr(cusip,1,6)
+	ren year fyear
+	merge m:1 cusip6 fyear using `cusip_gvkeys', keepus(gvkey) keep(1 3)
+	ren fyear year
 	
 	sort gvkey meetingdate did
 	replace outside_public_boards=0 if outside_public_boards==.
@@ -169,7 +175,7 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	so we want a map from the meetings to the right data. So my idea is tp grab
 	the nearest prior date to the meeting
 	
-	When I ran the code bellow there were shockingly few duplicates and honestly
+	When I ran the code below there were shockingly few duplicates and honestly
 	nothing that seemed too too bad from a matching standpoint. I ended up just 
 	keep the most recently updated observation.
 	**************************************************************************/	
