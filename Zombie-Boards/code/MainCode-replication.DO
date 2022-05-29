@@ -9,30 +9,45 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 
 *============================================================================
 *Generate Regression Dataset
+
+/*[LM] Additional governance variables needed for extension:
+labylw - limit ability to amend bylaws
+supermajor - supermajority required for mergers
+charter_amend_votepct - vote % required to amend charter (need to turn this into a variable reflecting supermajorities only)
+gparachute - golden parachutes
+ppill - poison pills */
+global eindex = "cboard labylw lachtr supermajor gparachute ppill"
 *============================================================================
 	
 /*Process and Merge Variables from IRRC governance dataset*/
 	use "rawdata/govlegacy19902006.dta",clear /*governance legacy file*/
-	keep cn6 year cboard
+	keep cn6 year $eindex
 	tempfile temp2
 	save `temp2',replace
 	
 	use "rawdata/gov20072015.dta",clear
-	gen cn6=substr(cusip,1,6) 
-	keep cn6 year cboard
+	gen cn6=substr(cusip,1,6)
+	gen supermajor = supermajor_pcnt > 51 // starts at 60%
+	keep cn6 year $eindex
 	replace cboard=upper(cboard)
 	gen I=(cboard=="YES")
 	drop cboard
 	rename I cboard
-	keep cn6 year cboard
+	foreach var of varlist ppill gparachute labylw lachtr {
+		ren `var' `var'_str
+		gen `var' = `var'_str == "YES"
+	}
+	replace labylw = . if labylw_str == "NA"
+	keep cn6 year $eindex
 	append using `temp2'
+
 	drop if cn6==""
 	duplicates drop
-	tempfile cboard
-	save `cboard',replace
+	tempfile gov
+	save `gov',replace
 
 	use "dataset_irrc.dta",clear /*processed under ProcessIRRC_SDCCode.do*/
-	merge m:1 cn6 year using `cboard', keep(1 3) nogen
+	merge m:1 cn6 year using `gov', keep(1 3) nogen
 	replace cboard=0 if cboard==.
 	sort gvkey fyear
 	by gvkey fyear: egen max=max(cboard)
@@ -118,6 +133,7 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	gen mkvalt=csho*prcc_f	
 	gen salegrowth=(sale-l.sale)/l.sale
 	gen tobin=(at+mkvalt-ceq-txdb)/at
+	gen tobin_lag = l.tobin
 	gen leverage=(dlc+dltt)/at
 	gen roa_g=(ni+xido)/l.at 
 	gen capex_at=capxv/at
@@ -137,7 +153,7 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	gen debtiss_lag=l.debtiss
 	gen equityiss_lag=l.equityiss
 	gen curr_lag=l.curr
-	keep gvkey fyear tobin ln_roa_g salegrowth_lag ln_roa_g_lag  gdwl_at_lag leverage_lag  ln_sale_lag capex_at_lag debtiss_lag equityiss_lag curr_lag
+	keep gvkey fyear tobin tobin_lag ln_roa_g salegrowth_lag ln_roa_g_lag  gdwl_at_lag leverage_lag  ln_sale_lag capex_at_lag debtiss_lag equityiss_lag curr_lag
 	tempfile temp1
 	save `temp1',replace
 
@@ -256,9 +272,12 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 	*define controls
 	global control2a="tenure_sd_outsider ceoage ceotenure  ceopctowned  I_ceochair cboard I_boardind num_busy I_interlock num_dir salegrowth_lag ln_roa_g_lag  ln_firmage lnret_fiscal_lag"
 	*** Removed I_ceofounder from control2a
+	*** Moved cboard out of this global and on its own in the regressions to compare w/ extension
 	global control2b="num_acq_lag gdwl_at_lag leverage_lag nseg_lag ln_sale_lag capex_at_lag ln_stdret_lag"
 	*** Removed I_ipospin_lag from control2b
-	global control="blau_gender blau_ethnic blau_age avgoutsider_voting prop_age70 age_avg_outsider prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960 equityiss_lag debtiss_lag curr_lag"
+	global control="blau_gender blau_ethnic blau_age prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960 equityiss_lag debtiss_lag curr_lag"
+	*** Removed avgoutsider_voting, age_avg_outsider, prop_age70 from control
+	
 	local list="tobin ln_roa_g"
 	foreach var of local list{
 		centile `var',c (1 99)
@@ -281,40 +300,73 @@ cap cd "C:\Users\17036\Dropbox\Personal Document Backup\Booth\First Year\Booth M
 		replace `var'=r(c_1) if `var'<r(c_1)&`var'<.
 		replace `var'=r(c_2) if `var'>r(c_2)&`var'<.
 	}	*/
-	save dataset,replace
 	
+*--- Label Variables ---*
+lab var tobin "Tobin's Q"
+lab var ln_roa_g "ROA"
+lab var tobin_lag "Lag Tobin's Q"
+lab var ln_roa_g_lag "Lag ROA"
+lab var tenure_avg_outsider "Tenure"
+lab var tenure2_avg_outsider "Tenure^2"
+lab var cboard "Staggered Board"
+lab var labylw "Lim. Ab. Amend Bylaws"
+lab var supermajor "Supermaj. for Mergers"
+lab var lachtr "Lim. Ab. Amend Charter"
+lab var gparachute "Golden Parachute"
+lab var ppill "Poison Pill"
+
+	save dataset,replace
 
 *====================================================================================
-*Analyses	
+*Replicated Results	
 *====================================================================================
 est clear
 
 *Baseline Specification
-	use dataset,clear
-	eststo m1a: xi:areg tobin tenure_avg_outsider tenure2_avg_outsider $control2a  $control2b i.fyear,abs(gvkey) cluster(gvkey)
+	eststo m1a: xi:areg tobin tenure_avg_outsider tenure2_avg_outsider cboard $control2a  $control2b i.fyear,abs(gvkey) cluster(gvkey)
 	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace 	
-	eststo m1b: xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b i.fyear,abs(gvkey) cluster(gvkey)
+	eststo m1b: xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider cboard  $control2a  $control2b i.fyear,abs(gvkey) cluster(gvkey)
 	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append	
 
 *Include Additional Firm-Year Controls	
-	use dataset,clear
-	eststo m2a: xi:areg tobin tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b /*$control*/  i.fyear,abs(gvkey) cluster(gvkey)
+	eststo m2a: xi:areg tobin tenure_avg_outsider tenure2_avg_outsider cboard  $control2a  $control2b $control  i.fyear,abs(gvkey) cluster(gvkey)
 	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace	
-	eststo m2b: xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider  $control2a  $control2b /*$control*/ i.fyear,abs(gvkey) cluster(gvkey)
+	eststo m2b: xi:areg ln_roa_g tenure_avg_outsider tenure2_avg_outsider cboard  $control2a  $control2b $control i.fyear,abs(gvkey) cluster(gvkey)
 	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append	
 
 	
 *Include Firm, Year and CEO Fixed Effects
-	use dataset,clear
-	eststo m3a: xi: reghdfe tobin tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
+	eststo m3a: xi: reghdfe tobin tenure_avg_outsider tenure2_avg_outsider cboard   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
 	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) replace
-	eststo m3b: xi: reghdfe ln_roa_g tenure_avg_outsider tenure2_avg_outsider   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
+	eststo m3b: xi: reghdfe ln_roa_g tenure_avg_outsider tenure2_avg_outsider cboard   $control2a  $control2b, abs(fyear gvkey execid) cluster(gvkey)
 	*outreg2	using table3.xls,excel drop (_I*) tstat  aster(tstat) bdec(3) tdec(2) append
 	
 	
-esttab m* using table2.tex, label replace booktabs longtable ///
-  title(Board Tenure and Firm Value\label{tab2})
+esttab m* using table2.tex, label replace booktabs se ///
+	keep(tenure_avg_outsider tenure2_avg_outsider cboard ln_roa_g_lag) ///
+	title(Replication of Original Paper\label{tab1})
 	
+*====================================================================================
+*Extension Results	
+*====================================================================================
+
+est clear
+
+*baseline
+eststo m1a: reg tobin tenure_avg_outsider tenure2_avg_outsider $eindex tobin_lag $control2a  $control2b, cluster(gvkey)
+eststo m1b: reg ln_roa_g tenure_avg_outsider tenure2_avg_outsider $eindex tobin_lag $control2a  $control2b, cluster(gvkey)
+
+*additional controls
+eststo m2a: reg tobin tenure_avg_outsider tenure2_avg_outsider $eindex tobin_lag $control2a  $control2b $control, cluster(gvkey)
+eststo m2b: reg ln_roa_g tenure_avg_outsider tenure2_avg_outsider $eindex tobin_lag $control2a  $control2b $control, cluster(gvkey)
+
+
+esttab m* using table2B.tex, label replace booktabs se ///
+	keep( tenure_avg_outsider tenure2_avg_outsider $eindex tobin_lag ln_roa_g_lag) ///
+	title(Results from Extension\label{tab2})
+
+	
+
 /*
 *Include industry*year joint Fixed Effect	
 	use dataset,clear

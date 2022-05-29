@@ -38,6 +38,7 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 		ren `var' `var'_str
 		gen byte `var' = inlist(`var'_str,"Yes","member","chair")
 	}
+	
 	append using "rawdata/irrc_directorlegacy19962006.dta", force /*IRRC director legacy dataset*/
 	egen did = group(fullname)
 		gen cusip6 = substr(cusip,1,6)
@@ -165,6 +166,7 @@ cap cd "/Users/francisco/Dropbox/zombie-boards-data"
 	by gvkey meetingdate: egen avgoutsider_voting=mean(I)
 	drop I
 	*/
+	
 	
 	keep gvkey year meetingdate  tenure_sd_outsider tenure_avg_outsider num_dir blau_gender blau_ethnic blau_age /*avgoutsider_voting prop_age70 age_avg_outsider*/ prop_outexec prop_born1920 prop_born1930 prop_born1940 prop_born1950 prop_born1960 I_ceochair I_boardind I_interlock num_busy
 	duplicates drop 
